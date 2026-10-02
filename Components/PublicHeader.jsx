@@ -5,14 +5,40 @@ import { useEffect, useRef, useState } from "react";
 import { AdminIcon, ChevronDownIcon, SocialIcon } from "./Icons";
 import ProfileAvatar from "./ProfileAvatar";
 
-const routes = [
-  { href: "/", label: "Home", icon: "home" },
+// Two businesses on one brand: the studio sells the work, the academy sells the
+// course. Each context gets its own link set and calls to action rather than one
+// compromised menu. The desktop bar reads these; the mobile drawer flattens them.
+const studioLinks = [
   { href: "/work", label: "Work", icon: "video" },
-  { href: "/about", label: "About", icon: "user" },
   { href: "/services", label: "Services", icon: "settings" },
-  { href: "/courses", label: "Courses", icon: "book" },
+  {
+    href: "/academy",
+    label: "Academy",
+    icon: "award",
+    children: [
+      { href: "/academy", label: "Course overview", description: "What you learn and who it is for" },
+      { href: "/academy#curriculum", label: "Curriculum", description: "Modules, lessons and free previews" },
+      { href: "/academy#pricing", label: "Pricing", description: "One payment, lifetime access" },
+      { href: "/verify", label: "Verify a certificate", description: "Check a serial from any certificate" },
+    ],
+  },
+  { href: "/about", label: "About", icon: "user" },
   { href: "/contact", label: "Contact", icon: "mail" },
 ];
+
+const academyLinks = [
+  { href: "/academy", label: "Course", icon: "book" },
+  { href: "/academy#curriculum", label: "Curriculum", icon: "folder" },
+  { href: "/academy#pricing", label: "Pricing", icon: "folder" },
+  { href: "/work", label: "See the work", icon: "video" },
+  { href: "/verify", label: "Verify a certificate", icon: "award" },
+  { href: "/about", label: "About", icon: "user" },
+];
+
+// the academy context covers the course pages and everything behind the door
+function isAcademyPath(path) {
+  return path === "/academy" || String(path).startsWith("/academy") || String(path).startsWith("/learn") || String(path).startsWith("/dashboard");
+}
 
 export default function PublicHeader({ site, current = "/" }) {
   const [open, setOpen] = useState(false);
@@ -27,6 +53,17 @@ export default function PublicHeader({ site, current = "/" }) {
     .join("")
     .toUpperCase();
   const profilePosition = `${Number(site.profileFocalX) || 50}% ${Number(site.profileFocalY) || 50}%`;
+
+  const academy = isAcademyPath(current);
+  const links = academy ? academyLinks : studioLinks;
+  const primaryCta = academy
+    ? { href: "/contact?intent=academy", label: "Enrol now" }
+    : { href: "/contact", label: site.ctaLabel || "Start a project" };
+  const secondaryCta = academy
+    ? { href: "/work", label: "See the work" }
+    : { href: "/academy", label: "Browse courses" };
+
+  const isActive = (href) => current === href || (href !== "/" && String(current).startsWith(`${href}/`));
 
   function close() {
     if (!open) return;
@@ -85,6 +122,7 @@ export default function PublicHeader({ site, current = "/" }) {
         <Link href="/" className="identity">
           <ProfileAvatar className="profile-image" src={site.profileImage} width={40} height={40} sizes="(max-width: 767px) 32px, 40px" style={{ objectPosition: profilePosition }} alt={`${site.creatorName} profile`} initials={initials} priority />
           <span>{site.creatorName}</span>
+          <span className="identity-badge">{academy ? "Academy" : "Studio"}</span>
         </Link>
         <button
           className="menu-trigger"
@@ -105,20 +143,20 @@ export default function PublicHeader({ site, current = "/" }) {
               aria-label="Site navigation"
               aria-hidden={!open}
             >
-            {routes.map((route) => (
-              <span className="t-tt-wrap mobile-nav-item" key={route.href}>
+            {links.map((link) => (
+              <span className="t-tt-wrap mobile-nav-item" key={link.href}>
                 <Link
-                  href={route.href}
-                  className={`t-tt-trigger ${current === route.href ? "is-active" : ""}`}
-                  aria-label={route.label}
-                  aria-current={current === route.href ? "page" : undefined}
+                  href={link.href}
+                  className={`t-tt-trigger ${isActive(link.href) ? "is-active" : ""}`}
+                  aria-label={link.label}
+                  aria-current={isActive(link.href) ? "page" : undefined}
                   tabIndex={open ? 0 : -1}
                   onClick={close}
                 >
-                  <AdminIcon name={route.icon} />
-                  <span className="menu-label">{route.label}</span>
+                  <AdminIcon name={link.icon} />
+                  <span className="menu-label">{link.label}</span>
                 </Link>
-                <span className="t-tt" role="tooltip">{route.label}</span>
+                <span className="t-tt" role="tooltip">{link.label}</span>
               </span>
             ))}
             {site.instagramUrl && (
@@ -143,8 +181,33 @@ export default function PublicHeader({ site, current = "/" }) {
           </div>
         </div>
       </div>
-      <nav className="header-actions">
-        <Link className="header-cta" href="/contact">{site.ctaLabel}<AdminIcon name="arrow" /></Link>
+      {/* desktop: a plain list of links, with the academy panel as a hover and
+          focus disclosure. no custom arrow-key handling, so Tab just works. */}
+      <nav className="header-actions" aria-label="Primary">
+        <div className="header-links">
+          {links.map((link) =>
+            link.children ? (
+              <div className="header-dropdown" key={link.href}>
+                <span className="header-dropdown-trigger">
+                  <Link href={link.href} className={isActive(link.href) ? "is-active" : ""} aria-current={isActive(link.href) ? "page" : undefined}>{link.label}</Link>
+                  <span className="header-dropdown-caret" aria-hidden="true">▼</span>
+                </span>
+                <div className="header-dropdown-panel">
+                  {link.children.map((child) => (
+                    <Link className="header-dropdown-item" href={child.href} key={`${child.href}-${child.label}`}>
+                      <span>{child.label}</span>
+                      {child.description ? <small>{child.description}</small> : null}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Link key={link.href} href={link.href} className={isActive(link.href) ? "is-active" : ""} aria-current={isActive(link.href) ? "page" : undefined}>{link.label}</Link>
+            ),
+          )}
+        </div>
+        <Link className="header-secondary" href={secondaryCta.href}>{secondaryCta.label}</Link>
+        <Link className="header-cta" href={primaryCta.href}>{primaryCta.label}<AdminIcon name="arrow" /></Link>
       </nav>
     </header>
   );

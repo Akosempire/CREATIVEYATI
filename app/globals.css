@@ -1099,3 +1099,30 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .print-document .print-lines th:not(:first-child), .print-document .print-lines td:not(:first-child) { text-align: right; }
 .print-document .print-meta strong { font-weight: 600; }
 @media print { .print-document .print-lines td, .print-document .print-lines th { border-color: #d8d8d4; } }
+
+/* ---- public navigation: horizontal bar, academy panel, context badge ---- */
+.header-links { display: none; }
+.identity-badge { margin-left: 8px; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: .58rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); }
+.header-secondary { display: none; }
+.header-dropdown { position: relative; }
+.header-dropdown-trigger { display: inline-flex; align-items: center; gap: 5px; }
+.header-dropdown-caret { font-size: .52rem; line-height: 1; color: var(--muted-foreground); }
+.header-dropdown-panel { position: absolute; top: calc(100% + 14px); left: -14px; z-index: 60; display: none; width: 288px; padding: 8px; background: var(--background); border: 1px solid var(--border); border-radius: 4px; }
+/* pt keeps the hover path continuous from trigger to panel */
+.header-dropdown:hover .header-dropdown-panel,
+.header-dropdown:focus-within .header-dropdown-panel { display: grid; gap: 2px; }
+.header-dropdown:hover .header-dropdown-caret,
+.header-dropdown:focus-within .header-dropdown-caret { transform: rotate(180deg); }
+.header-dropdown-item { display: block; padding: 10px 12px; border-radius: 3px; }
+.header-dropdown-item span { display: block; font-size: .84rem; color: var(--foreground); }
+.header-dropdown-item small { display: block; margin-top: 3px; font-size: .72rem; line-height: 1.45; color: var(--muted-foreground); }
+.header-dropdown-item:hover { background: var(--surface, rgba(0, 0, 0, .035)); }
+@media (min-width: 768px) {
+  .header-links { display: flex; align-items: center; gap: 22px; }
+  .header-links a { font-size: .82rem; letter-spacing: .01em; color: var(--muted-foreground); }
+  .header-links a:hover, .header-links a.is-active { color: var(--foreground); }
+  .menu-trigger { display: none; }
+  .header-secondary { display: inline-flex; margin-right: 12px; font-size: .82rem; color: var(--muted-foreground); }
+  .header-secondary:hover { color: var(--foreground); }
+  .header-actions { display: flex; align-items: center; }
+}

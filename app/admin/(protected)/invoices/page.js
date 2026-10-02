@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InvoiceLineItems from "@/Components/InvoiceLineItems";
 import { markInvoicePaid, saveInvoice, updateInvoiceStatus } from "@/app/admin/actions";
 import { formatMoney } from "@/lib/data/courses";
 import { financeSummary, formatInvoiceDate, getAdminInvoices, isOverdue } from "@/lib/data/invoices";
@@ -34,7 +35,7 @@ export default async function AdminInvoicesPage({ searchParams }) {
         <label>Discount<input name="discount" defaultValue="0" /></label>
         <label>Due date<input name="dueAt" type="date" /></label>
         <label>Valid until<input name="validUntil" type="date" /></label>
-        <label className="form-wide">Line items<textarea name="lineItems" placeholder="Beauty commercial — 30s hero film | 1 | 1800000" required /><small>One per line: description | quantity | unit price</small></label>
+        <InvoiceLineItems />
         <label className="form-wide">Notes and terms<textarea name="notes" /></label>
         <button className="button" type="submit">Create document</button>
       </form>

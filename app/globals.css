@@ -1079,3 +1079,15 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .certificate-list { display: grid; gap: 22px; }
 .certificate-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 14px; }
 .admin-table span small { display: block; margin-top: 3px; font-size: .68rem; color: var(--muted); }
+
+/* ---- invoice line items ---- */
+.invoice-items { display: block; }
+.invoice-items-head { margin: 0 0 10px; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted-foreground); }
+.invoice-item-row { display: grid; grid-template-columns: minmax(0, 3fr) 80px 130px auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+.invoice-item-row label { display: block; }
+.invoice-items-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.invoice-items-foot p { margin: 0; font-size: .78rem; color: var(--muted-foreground); }
+@media (max-width: 720px) {
+  .invoice-item-row { grid-template-columns: 1fr 1fr; }
+  .invoice-item-row label:first-child { grid-column: 1 / -1; }
+}

@@ -14,7 +14,7 @@ import { recordRefund, requestRefund, testBachsConnection } from "@/lib/payments
 import { getCourseVideoSource } from "@/lib/course-video-source";
 import { checkExternalCourseVideo } from "@/lib/course-video-validation";
 import { getCoursePublishIssues } from "@/lib/data/course-publishing";
-import { invoiceTotals, newAccessToken, nextInvoiceNumber, parseLineItems, toMinor } from "@/lib/data/invoices";
+import { invoiceTotals, newAccessToken, nextInvoiceNumber, toMinor } from "@/lib/data/invoices";
 import { issueInvoiceReceipt } from "@/lib/payments/invoices";
 
 async function admin() { const user = await getAdminUser(); if (!user) throw new Error("Unauthorised"); return user; }
@@ -22,7 +22,12 @@ export async function revokeCertificate(formData) { await admin(); const supabas
 export async function saveInvoice(formData) {
   await admin(); const supabase = await createSupabaseServerClient(); const id = String(formData.get("id") || "");
   const documentType = String(formData.get("documentType") || "quote") === "invoice" ? "invoice" : "quote";
-  const items = parseLineItems(formData.get("lineItems"));
+  // line items arrive as repeated fields, and every figure is recomputed here
+  // rather than taken from the browser
+  const descriptions = formData.getAll("itemDescription");
+  const quantities = formData.getAll("itemQuantity");
+  const prices = formData.getAll("itemUnitPrice");
+  const items = descriptions.map((description, index) => ({ description: String(description || "").trim(), quantity: Math.max(0.01, Number(quantities[index]) || 1), unitPriceMinor: toMinor(prices[index]), displayOrder: index })).filter((item) => item.description);
   if (!items.length) redirect(`/admin/invoices?error=${encodeURIComponent("Add at least one line item.")}`);
   // totals are always recomputed from the items, never taken from the form
   const totals = invoiceTotals(items, toMinor(formData.get("discount"))); const now = new Date().toISOString();

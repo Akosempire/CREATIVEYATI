@@ -37,6 +37,7 @@ export default async function QuotePage({ params, searchParams }) {
       <InvoiceDocument invoice={invoice} />
 
       <div className="no-print certificate-actions">
+        <a className="button" href={`/api/invoices/${token}`}>Download PDF</a>
         <PrintDocumentButton label="Print or save as PDF" className="button button-secondary" />
       </div>
 

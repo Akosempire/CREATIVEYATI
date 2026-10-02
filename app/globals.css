@@ -1220,3 +1220,11 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .lh-hero { padding: 64px 20px 32px; }
   .lh-fan { gap: 8px; transform: translateY(10%); }
 }
+
+/* ---- hamburger is a mobile control only ---- */
+/* this must come after the block that sets .menu-trigger to inline-flex: with
+   equal specificity the later rule wins, which is why it leaked onto desktop */
+@media (min-width: 768px) {
+  .menu-trigger { display: none !important; }
+  .mobile-menu { display: none !important; }
+}

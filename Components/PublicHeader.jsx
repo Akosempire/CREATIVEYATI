@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AdminIcon, ChevronDownIcon, SocialIcon } from "./Icons";
+import { AdminIcon, SocialIcon } from "./Icons";
 import ProfileAvatar from "./ProfileAvatar";
 
 // Two businesses on one brand: the studio sells the work, the academy sells the
 // course. Each context gets its own link set and calls to action rather than one
-// compromised menu. The desktop bar reads these; the mobile drawer flattens them.
+// compromised menu. The desktop bar reads these; the mobile sheet flattens them.
 const studioLinks = [
   { href: "/work", label: "Work", icon: "video" },
   { href: "/services", label: "Services", icon: "settings" },
@@ -63,7 +63,7 @@ export default function PublicHeader({ site, current = "/" }) {
     ? { href: "/work", label: "See the work" }
     : { href: "/academy", label: "Browse courses" };
 
-  const isActive = (href) => current === href || (href !== "/" && String(current).startsWith(`${href}/`));
+  const isActive = (href) => current === href || (href !== "/" && !href.includes("#") && String(current).startsWith(`${href}/`));
 
   function close() {
     if (!open) return;
@@ -124,63 +124,63 @@ export default function PublicHeader({ site, current = "/" }) {
           <span>{site.creatorName}</span>
           <span className="identity-badge">{academy ? "Academy" : "Studio"}</span>
         </Link>
+        {/* mobile: a hamburger, not a dropdown chevron. it opens a full sheet
+            rather than a panel hanging off the identity. */}
         <button
-          className="menu-trigger"
+          className={`menu-trigger ${open ? "is-open" : ""}`}
           type="button"
           onClick={toggle}
-          aria-controls="site-navigation"
+          aria-controls="mobile-navigation"
           aria-expanded={open}
-          aria-label={open ? "Close site navigation" : "Open site navigation"}
+          aria-label={open ? "Close menu" : "Open menu"}
         >
-          <ChevronDownIcon open={open} />
+          <span className="menu-bars" aria-hidden="true"><span /><span /><span /></span>
         </button>
-        <div className={`mobile-menu-layer ${open ? "is-open" : ""} ${closing ? "is-closing" : ""}`}>
-          <div className="mobile-menu-glass">
-            <nav
-              id="site-navigation"
-              className={`t-dropdown public-menu mobile-nav-menu ${open ? "is-open" : ""} ${closing ? "is-closing" : ""}`}
-              data-origin="top-left"
-              aria-label="Site navigation"
-              aria-hidden={!open}
-            >
-            {links.map((link) => (
-              <span className="t-tt-wrap mobile-nav-item" key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`t-tt-trigger ${isActive(link.href) ? "is-active" : ""}`}
-                  aria-label={link.label}
-                  aria-current={isActive(link.href) ? "page" : undefined}
-                  tabIndex={open ? 0 : -1}
-                  onClick={close}
-                >
-                  <AdminIcon name={link.icon} />
-                  <span className="menu-label">{link.label}</span>
-                </Link>
-                <span className="t-tt" role="tooltip">{link.label}</span>
-              </span>
-            ))}
-            {site.instagramUrl && (
-              <span className="t-tt-wrap menu-social">
-                <a className="t-tt-trigger" href={site.instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram" tabIndex={open ? 0 : -1} onClick={close}>
-                  <SocialIcon name="instagram" />
-                  <span className="menu-label">Instagram</span>
-                </a>
-                <span className="t-tt" role="tooltip">Instagram</span>
-              </span>
-            )}
-            {site.youtubeUrl && (
-              <span className="t-tt-wrap menu-social">
-                <a className="t-tt-trigger" href={site.youtubeUrl} target="_blank" rel="noreferrer" aria-label="YouTube" tabIndex={open ? 0 : -1} onClick={close}>
-                  <SocialIcon name="youtube" />
-                  <span className="menu-label">YouTube</span>
-                </a>
-                <span className="t-tt" role="tooltip">YouTube</span>
-              </span>
-            )}
-            </nav>
+      </div>
+
+      <div
+        id="mobile-navigation"
+        className={`mobile-menu ${open ? "is-open" : ""} ${closing ? "is-closing" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site navigation"
+        aria-hidden={!open}
+      >
+        <nav className="mobile-menu-links">
+          {links.map((link) => (
+            <div key={link.href}>
+              <Link
+                href={link.href}
+                className={`mobile-menu-link ${isActive(link.href) ? "is-active" : ""}`}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                tabIndex={open ? 0 : -1}
+                onClick={close}
+              >
+                <AdminIcon name={link.icon} />
+                <span>{link.label}</span>
+              </Link>
+              {link.children ? (
+                <div className="mobile-menu-sub">
+                  {link.children.map((child) => (
+                    <Link key={`${child.href}-${child.label}`} href={child.href} tabIndex={open ? 0 : -1} onClick={close}>{child.label}</Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </nav>
+        {(site.instagramUrl || site.youtubeUrl) ? (
+          <div className="mobile-menu-social">
+            {site.instagramUrl ? <a href={site.instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram" tabIndex={open ? 0 : -1} onClick={close}><SocialIcon name="instagram" /><span>Instagram</span></a> : null}
+            {site.youtubeUrl ? <a href={site.youtubeUrl} target="_blank" rel="noreferrer" aria-label="YouTube" tabIndex={open ? 0 : -1} onClick={close}><SocialIcon name="youtube" /><span>YouTube</span></a> : null}
           </div>
+        ) : null}
+        <div className="mobile-menu-foot">
+          <Link className="button" href={primaryCta.href} tabIndex={open ? 0 : -1} onClick={close}>{primaryCta.label}</Link>
+          <Link className="button button-secondary" href={secondaryCta.href} tabIndex={open ? 0 : -1} onClick={close}>{secondaryCta.label}</Link>
         </div>
       </div>
+
       {/* desktop: a plain list of links, with the academy panel as a hover and
           focus disclosure. no custom arrow-key handling, so Tab just works. */}
       <nav className="header-actions" aria-label="Primary">

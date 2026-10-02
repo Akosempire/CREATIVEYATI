@@ -1157,3 +1157,29 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .academy-cta h2 { font-size: clamp(1.6rem, 4vw, 2.6rem); letter-spacing: -.03em; margin: 0 auto 16px; max-width: 24ch; }
 .academy-cta .academy-actions { justify-content: center; }
 
+
+/* ---- mobile: hamburger button and full menu sheet ---- */
+/* the header must sit above the sheet, or the close button is unreachable */
+.site-header { z-index: 60; }
+.menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; background: transparent; border: 1px solid var(--border); border-radius: 3px; cursor: pointer; }
+.menu-bars { position: relative; display: block; width: 18px; height: 12px; }
+.menu-bars span { position: absolute; left: 0; right: 0; height: 1.5px; background: var(--foreground); transition: transform .18s ease, opacity .18s ease; }
+.menu-bars span:nth-child(1) { top: 0; }
+.menu-bars span:nth-child(2) { top: 5px; }
+.menu-bars span:nth-child(3) { top: 10px; }
+.menu-trigger.is-open .menu-bars span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+.menu-trigger.is-open .menu-bars span:nth-child(2) { opacity: 0; }
+.menu-trigger.is-open .menu-bars span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+.mobile-menu { position: fixed; left: 0; right: 0; top: 76px; bottom: 0; z-index: 50; display: flex; flex-direction: column; padding: 8px 22px 30px; background: var(--background); border-top: 1px solid var(--border); overflow-y: auto; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .18s ease, transform .18s ease, visibility .18s; }
+.mobile-menu.is-open { opacity: 1; visibility: visible; transform: none; }
+.mobile-menu-links { display: block; }
+.mobile-menu-link { display: flex; align-items: center; gap: 12px; padding: 15px 2px; border-bottom: 1px solid var(--border); font-size: .95rem; }
+.mobile-menu-link.is-active { color: var(--accent); }
+.mobile-menu-sub { display: grid; gap: 2px; padding: 4px 0 14px 30px; border-bottom: 1px solid var(--border); }
+.mobile-menu-sub a { padding: 7px 0; font-size: .84rem; color: var(--muted-foreground); }
+.mobile-menu-sub a:hover { color: var(--foreground); }
+.mobile-menu-social { display: flex; gap: 22px; padding: 18px 2px 4px; }
+.mobile-menu-social a { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted-foreground); }
+.mobile-menu-foot { display: grid; gap: 10px; margin-top: auto; padding-top: 20px; }
+.mobile-menu-foot .button { width: 100%; text-align: center; }
+@media (min-width: 768px) { .mobile-menu { display: none; } }

@@ -1,18 +1,22 @@
 import Link from "next/link";
-import { formatCertificateDate, getStudentCertificates } from "@/lib/data/certificates";
+import CertificateDocument from "@/Components/CertificateDocument";
+import PrintDocumentButton from "@/Components/PrintDocumentButton";
+import { getStudentCertificates } from "@/lib/data/certificates";
 
 export const metadata = { title: "My certificates" };
 
 export default async function StudentCertificatesPage() {
   const certificates = await getStudentCertificates();
   return <section className="learn-dashboard public-note">
-    <p className="eyebrow">MY LEARNING</p><h1 className="page-title">Certificates.</h1>
-    <p className="admin-lede">Issued automatically when every published lesson in a course is complete. Each certificate carries a serial and a public verification link you can share with anyone.</p>
-    <p><Link className="inline-link" href="/learn">Back to my learning</Link></p>
-    {certificates.length ? <div className="admin-list">{certificates.map((certificate) => <div key={certificate.id}>
-      <span>{certificate.courseTitle}<small>{certificate.lessonCount} lessons · {certificate.instructionMinutes} minutes · issued {formatCertificateDate(certificate.issuedAt)}{certificate.status === "revoked" ? ` · revoked${certificate.revokeReason ? ` (${certificate.revokeReason})` : ""}` : ""}</small></span>
-      <span><strong>{certificate.serial}</strong><Link className="inline-link" href={certificate.verifyPath}>Verify</Link></span>
+    <p className="eyebrow no-print">MY LEARNING</p><h1 className="page-title no-print">Certificates.</h1>
+    <p className="admin-lede no-print">Issued automatically when every published lesson in a course is complete. Each one carries a serial and a public verification link you can share with anyone.</p>
+    <p className="no-print"><Link className="inline-link" href="/learn">Back to my learning</Link></p>
+    {certificates.length ? <div className="certificate-list">{certificates.map((certificate) => <div key={certificate.id}>
+      <CertificateDocument certificate={certificate} />
+      <div className="no-print certificate-actions">
+        <PrintDocumentButton label="Print certificate" className="button" />
+        <Link className="inline-link" href={certificate.verifyPath}>Open verification page</Link>
+      </div>
     </div>)}</div> : <div className="empty-state"><p>No certificate yet. Finish every lesson in a course and it is issued here automatically.</p><Link className="button" href="/learn">Back to my learning</Link></div>}
-    <p className="admin-lede">A certificate confirms completion of the course and the instruction time recorded against it. It is not an accreditation or a statement of professional mastery.</p>
   </section>;
 }

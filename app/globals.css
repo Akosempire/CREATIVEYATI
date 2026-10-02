@@ -1078,3 +1078,11 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .academy-cta { padding: 80px 24px; text-align: center; }
 .academy-cta h2 { font-size: clamp(1.6rem, 4vw, 2.6rem); letter-spacing: -.03em; margin: 0 auto 16px; max-width: 24ch; }
 .academy-cta .academy-actions { justify-content: center; }
+
+/* ---- lesson watermark (casual-sharing deterrent) ---- */
+.course-video-player { position: relative; }
+.lesson-watermark { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; user-select: none; }
+.lesson-watermark span { position: absolute; font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.4); text-shadow: 0 1px 2px rgba(0,0,0,.55); white-space: nowrap; }
+.lesson-watermark span:nth-child(1) { top: 12px; left: 14px; }
+.lesson-watermark span:nth-child(2) { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-18deg); font-size: .8rem; }
+.lesson-watermark span:nth-child(3) { right: 14px; bottom: 50px; }

@@ -11,8 +11,9 @@ import { getPublicSocialLinks } from "@/lib/data/social";
 // The home page leads with the studio hero. The WebGL carousel is deliberately
 // not mounted here; its engine is untouched and still available where it is used.
 //
-// Cards are sized by their own image rather than a fixed ratio, so nothing is
-// ever cropped: equal width, equal gap, and only the vertical arc offsets differ.
+// The gallery drifts left continuously like the carousel did. The strip is
+// rendered twice and the track translates by exactly half its width, so the loop
+// is seamless. Cards take their height from the image, so nothing is cropped.
 const WASHES = [
   "linear-gradient(170deg, #cdc7bd 0%, #8f877c 100%)",
   "linear-gradient(170deg, #d7d2c8 0%, #a49c90 100%)",
@@ -37,6 +38,20 @@ export default async function Home() {
   const cards = (videos || []).slice(0, 7);
   const centre = (cards.length - 1) / 2;
 
+  function Card({ video, index, keyPrefix }) {
+    const distance = Math.abs(index - centre);
+    const still = stillFor(video);
+    return <figure
+      className="lh-card"
+      key={`${keyPrefix}-${video.id || index}`}
+      style={{ "--fan-i": index, "--fan-y": `${Math.round(distance * 22)}px` }}
+    >
+      {still
+        ? <img src={still} alt={video.title || "Studio work"} loading="lazy" />
+        : <span className="lh-card-wash" style={{ background: WASHES[index % WASHES.length] }} />}
+    </figure>;
+  }
+
   return <main className="portfolio-home">
     <section className="hero-work" style={{ "--site-accent": site.accentColor }}>
       <PublicHeader site={site} current="/" />
@@ -56,20 +71,14 @@ export default async function Home() {
       {error ? <p className="empty-state">{error}</p> : null}
 
       {cards.length ? <section className="lh-gallery" aria-label="Selected work">
-        <div className="lh-fan">
-          {cards.map((video, index) => {
-            const distance = Math.abs(index - centre);
-            const still = stillFor(video);
-            return <figure
-              className="lh-card"
-              key={video.id || index}
-              style={{ "--fan-i": index, "--fan-y": `${Math.round(distance * 22)}px` }}
-            >
-              {still
-                ? <img src={still} alt={video.title || "Studio work"} loading={index > 2 ? "lazy" : "eager"} />
-                : <span className="lh-card-wash" style={{ background: WASHES[index % WASHES.length] }} />}
-            </figure>;
-          })}
+        <div className="lh-marquee">
+          <div className="lh-strip">
+            {cards.map((video, index) => <Card keyPrefix="a" video={video} index={index} key={`a-${video.id || index}`} />)}
+          </div>
+          {/* the second copy is what makes the loop seamless; hidden from readers */}
+          <div className="lh-strip" aria-hidden="true">
+            {cards.map((video, index) => <Card keyPrefix="b" video={video} index={index} key={`b-${video.id || index}`} />)}
+          </div>
         </div>
       </section> : <p className="empty-state">No published work yet.</p>}
     </section>

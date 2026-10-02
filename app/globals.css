@@ -1271,3 +1271,37 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .portfolio-home .lh-card { animation: none; transition: none; }
   .portfolio-home .lh-card:hover { transform: none; }
 }
+
+/* ---- home gallery: bigger cards, drifting left like the carousel did ---- */
+.portfolio-home .lh-fan { display: block; }
+.portfolio-home .lh-gallery { overflow: hidden; }
+.portfolio-home .lh-marquee { display: flex; width: max-content; animation: lh-drift 60s linear infinite; }
+.portfolio-home .lh-strip { display: flex; align-items: flex-start; gap: 18px; padding-right: 18px; }
+/* translating exactly half the track width lands the second copy where the
+   first began, so the loop has no visible seam */
+@keyframes lh-drift { from { translate: 0 0; } to { translate: -50% 0; } }
+.portfolio-home .lh-marquee:hover { animation-play-state: paused; }
+.portfolio-home .lh-card {
+  flex: 0 0 auto; width: 380px; margin-top: var(--fan-y, 0);
+  border-radius: 26px; overflow: hidden; background: #e9e6e0;
+  box-shadow: 0 18px 38px rgba(16, 16, 15, .12);
+  animation: lh-rise .7s cubic-bezier(.22, .68, .28, 1) both;
+  animation-delay: calc(var(--fan-i, 0) * 70ms);
+  transition: transform .32s ease, box-shadow .32s ease;
+}
+.portfolio-home .lh-card img { display: block; width: 100%; height: auto; }
+.portfolio-home .lh-card-wash { display: block; width: 100%; aspect-ratio: 4 / 5; }
+.portfolio-home .lh-card:hover { transform: translateY(-8px); box-shadow: 0 26px 52px rgba(16, 16, 15, .18); }
+@keyframes lh-rise { from { opacity: 0; translate: 0 26px; scale: .98; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@media (min-width: 1500px) { .portfolio-home .lh-card { width: 440px; } }
+@media (max-width: 1099px) { .portfolio-home .lh-card { width: 300px; border-radius: 22px; } }
+@media (max-width: 767px) {
+  .portfolio-home .lh-card { width: 220px; border-radius: 16px; }
+  .portfolio-home .lh-strip { gap: 12px; padding-right: 12px; }
+  .portfolio-home .lh-marquee { animation-duration: 44s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-home .lh-marquee { animation: none; }
+  .portfolio-home .lh-card { animation: none; transition: none; }
+  .portfolio-home .lh-card:hover { transform: none; }
+}

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseAuthClient, createSupabaseServiceClient, getStudentUser } from "@/lib/supabase/server";
+import { issueCertificateFor } from "@/lib/data/certificates";
 
 function safeNext(value, fallback = "/learn") {
   const path = String(value || "");
@@ -72,5 +73,8 @@ export async function markLessonComplete(formData) {
   const { data: enrolment } = await service.from("enrolments").select("id").eq("student_id", user.id).eq("course_id", courseId).eq("active", true).maybeSingle();
   if (!enrolment) throw new Error("Course access is required.");
   await service.from("lesson_progress").upsert({ student_id: user.id, course_id: courseId, lesson_id: lessonId, completed: true, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }, { onConflict: "student_id,lesson_id" });
+  // issuing here ties the certificate to the action that actually finishes the course
+  await issueCertificateFor({ studentId: user.id, courseId });
   revalidatePath(`/learn/${courseSlug}`);
+  revalidatePath("/learn/certificates");
 }

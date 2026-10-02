@@ -11,6 +11,7 @@ const links = [
   { href: "/admin/content", label: "Website content", icon: "folder" },
   { href: "/admin/enquiries", label: "Enquiries", icon: "mail" },
   { href: "/admin/courses", label: "Courses", icon: "video" },
+  { href: "/admin/certificates", label: "Certificates", icon: "award" },
   { href: "/admin/orders", label: "Orders", icon: "folder" },
   { href: "/admin/payments", label: "Bachs payments", icon: "folder" },
   { href: "/admin/coupons", label: "Coupons", icon: "folder" },

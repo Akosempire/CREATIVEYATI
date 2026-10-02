@@ -1228,3 +1228,15 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .menu-trigger { display: none !important; }
   .mobile-menu { display: none !important; }
 }
+
+/* ---- the home page is not the full-page mock ---- */
+/* in the mock the fan was the last thing on the page and could sink out of the
+   fold. here a courses section follows, so it must sit flat and keep its space. */
+.portfolio-home .lh-hero { padding-top: 68px; padding-bottom: 24px; }
+.portfolio-home .lh-gallery { margin: 26px 0 34px; }
+.portfolio-home .lh-fan { transform: none; }
+.portfolio-home .lh-card { box-shadow: 0 14px 30px rgba(16, 16, 15, .10); }
+@media (max-width: 899px) {
+  .portfolio-home .lh-hero { padding-top: 40px; padding-bottom: 18px; }
+  .portfolio-home .lh-gallery { margin: 18px 0 26px; }
+}

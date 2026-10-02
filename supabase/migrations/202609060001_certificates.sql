@@ -45,3 +45,33 @@ drop policy if exists "students read own certificates" on public.certificates;
 create policy "students read own certificates" on public.certificates for select using (auth.uid() = student_id);
 drop policy if exists "admins manage certificates" on public.certificates;
 create policy "admins manage certificates" on public.certificates for all using (public.is_admin()) with check (public.is_admin());
+
+-- one-time backfill. issuance only runs when a lesson is marked complete, so
+-- students who finished a course before this migration would never be credited.
+-- only rows with every published lesson completed are inserted, and the unique
+-- constraint means re-running changes nothing.
+with published as (
+  select course_id, count(*)::int as lessons, coalesce(sum(duration_seconds), 0)::int as seconds
+  from public.course_lessons
+  where status = 'published'
+  group by course_id
+),
+finished as (
+  select lesson.course_id, progress.student_id, count(*)::int as done
+  from public.lesson_progress progress
+  join public.course_lessons lesson on lesson.id = progress.lesson_id
+  where progress.completed = true and lesson.status = 'published'
+  group by lesson.course_id, progress.student_id
+)
+insert into public.certificates (student_id, course_id, serial, student_name, course_title, lesson_count, instruction_minutes)
+select finished.student_id, finished.course_id, public.next_certificate_serial(),
+       coalesce(profile.full_name, account.email, ''), course.title, published.lessons,
+       round(published.seconds / 60.0)::int
+from finished
+join published on published.course_id = finished.course_id
+join public.courses course on course.id = finished.course_id
+left join public.student_profiles profile on profile.id = finished.student_id
+left join auth.users account on account.id = finished.student_id
+left join public.certificates existing on existing.student_id = finished.student_id and existing.course_id = finished.course_id
+where finished.done >= published.lessons and published.lessons > 0 and existing.id is null
+on conflict (student_id, course_id) do nothing;

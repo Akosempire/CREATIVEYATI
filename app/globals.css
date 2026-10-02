@@ -1305,3 +1305,7 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .portfolio-home .lh-card { animation: none; transition: none; }
   .portfolio-home .lh-card:hover { transform: none; }
 }
+
+/* ---- marquee: all projects, constant drift speed ---- */
+/* later longhand overrides the shorthand's 60s, so the speed tracks the count */
+.portfolio-home .lh-marquee { animation-duration: var(--marquee-duration, 60s); }

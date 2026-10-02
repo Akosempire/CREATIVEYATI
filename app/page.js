@@ -35,7 +35,9 @@ export default async function Home() {
   const courses = courseSettings.homepageEnabled ? await getPublishedCourses({ featured: true, limit: courseSettings.homepageLimit }) : [];
 
   const heading = site.heroHeading.split(site.highlightWord);
-  const cards = (videos || []).slice(0, 7);
+  // every published project drifts past, not a selection of them: upload more
+  // and they join the loop without a code change
+  const cards = videos || [];
   const centre = (cards.length - 1) / 2;
 
   function Card({ video, index, keyPrefix }) {
@@ -71,7 +73,9 @@ export default async function Home() {
       {error ? <p className="empty-state">{error}</p> : null}
 
       {cards.length ? <section className="lh-gallery" aria-label="Selected work">
-        <div className="lh-marquee">
+        {/* duration scales with the count so the drift speed stays the same as
+            the catalogue grows, rather than accelerating */}
+        <div className="lh-marquee" style={{ "--marquee-duration": `${Math.max(30, cards.length * 6)}s` }}>
           <div className="lh-strip">
             {cards.map((video, index) => <Card keyPrefix="a" video={video} index={index} key={`a-${video.id || index}`} />)}
           </div>

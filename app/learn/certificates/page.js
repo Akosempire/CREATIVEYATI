@@ -14,7 +14,8 @@ export default async function StudentCertificatesPage() {
     {certificates.length ? <div className="certificate-list">{certificates.map((certificate) => <div key={certificate.id}>
       <CertificateDocument certificate={certificate} />
       <div className="no-print certificate-actions">
-        <PrintDocumentButton label="Print certificate" className="button" />
+        <a className="button" href={`/api/learn/certificate/${certificate.id}`}>Download PDF</a>
+        <PrintDocumentButton label="Print certificate" className="button button-secondary" />
         <Link className="inline-link" href={certificate.verifyPath}>Open verification page</Link>
       </div>
     </div>)}</div> : <div className="empty-state"><p>No certificate yet. Finish every lesson in a course and it is issued here automatically.</p><Link className="button" href="/learn">Back to my learning</Link></div>}

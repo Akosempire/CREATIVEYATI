@@ -13,6 +13,7 @@ const links = [
   { href: "/admin/courses", label: "Courses", icon: "video" },
   { href: "/admin/certificates", label: "Certificates", icon: "award" },
   { href: "/admin/orders", label: "Orders", icon: "folder" },
+  { href: "/admin/invoices", label: "Quotations & invoices", icon: "book" },
   { href: "/admin/payments", label: "Bachs payments", icon: "folder" },
   { href: "/admin/coupons", label: "Coupons", icon: "folder" },
   { href: "/admin/settings/social", label: "Social profiles", icon: "user" },

@@ -1091,3 +1091,11 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .invoice-item-row { grid-template-columns: 1fr 1fr; }
   .invoice-item-row label:first-child { grid-column: 1 / -1; }
 }
+
+/* ---- invoice document lines ---- */
+.print-document .print-lines { width: 100%; border-collapse: collapse; margin-top: 26px; font-size: .86rem; }
+.print-document .print-lines th { text-align: left; font-weight: 500; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: #6b6b66; border-bottom: 1px solid var(--border); padding: 0 0 8px; }
+.print-document .print-lines td { padding: 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.print-document .print-lines th:not(:first-child), .print-document .print-lines td:not(:first-child) { text-align: right; }
+.print-document .print-meta strong { font-weight: 600; }
+@media print { .print-document .print-lines td, .print-document .print-lines th { border-color: #d8d8d4; } }

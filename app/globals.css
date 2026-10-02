@@ -1240,3 +1240,34 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .portfolio-home .lh-hero { padding-top: 40px; padding-bottom: 18px; }
   .portfolio-home .lh-gallery { margin: 18px 0 26px; }
 }
+
+/* ---- home hero fan: equal widths, equal gaps, no cropping, with motion ---- */
+/* the card takes its height from the image, so a still is never cut. only the
+   vertical arc offset changes per card, and that offset steps evenly. */
+.portfolio-home .lh-fan { display: flex; align-items: flex-start; justify-content: center; gap: 12px; padding: 0 14px; }
+.portfolio-home .lh-card {
+  flex: 0 0 auto; width: 200px; margin-top: var(--fan-y, 0);
+  border-radius: 22px; overflow: hidden; background: #e9e6e0;
+  box-shadow: 0 14px 30px rgba(16, 16, 15, .10);
+  animation: lh-rise .62s cubic-bezier(.22, .68, .28, 1) both;
+  animation-delay: calc(var(--fan-i, 0) * 70ms);
+  transition: transform .32s ease, box-shadow .32s ease;
+}
+.portfolio-home .lh-card img { display: block; width: 100%; height: auto; }
+.portfolio-home .lh-card-wash { display: block; width: 100%; aspect-ratio: 4 / 5; }
+.portfolio-home .lh-card:hover { transform: translateY(-6px); box-shadow: 0 22px 44px rgba(16, 16, 15, .16); }
+/* animate the individual translate property, not transform, so the hover lift
+   is not overridden by the entrance animation's fill */
+@keyframes lh-rise {
+  from { opacity: 0; translate: 0 26px; scale: .975; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@media (min-width: 1100px) { .portfolio-home .lh-card { width: 220px; } }
+@media (max-width: 899px) {
+  .portfolio-home .lh-fan { gap: 8px; }
+  .portfolio-home .lh-card { width: 146px; border-radius: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-home .lh-card { animation: none; transition: none; }
+  .portfolio-home .lh-card:hover { transform: none; }
+}

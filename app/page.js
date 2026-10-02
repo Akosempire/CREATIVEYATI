@@ -8,8 +8,11 @@ import { getCourseSettings } from "@/lib/data/settings";
 import { getPublishedCourses } from "@/lib/data/courses";
 import { getPublicSocialLinks } from "@/lib/data/social";
 
-// The home page is the studio hero. The WebGL carousel is deliberately no longer
-// mounted here; its engine is untouched and still available where it is used.
+// The home page leads with the studio hero. The WebGL carousel is deliberately
+// not mounted here; its engine is untouched and still available where it is used.
+//
+// Cards are sized by their own image rather than a fixed ratio, so nothing is
+// ever cropped: equal width, equal gap, and only the vertical arc offsets differ.
 const WASHES = [
   "linear-gradient(170deg, #cdc7bd 0%, #8f877c 100%)",
   "linear-gradient(170deg, #d7d2c8 0%, #a49c90 100%)",
@@ -60,17 +63,11 @@ export default async function Home() {
             return <figure
               className="lh-card"
               key={video.id || index}
-              style={{
-                width: `${176 + distance * 28}px`,
-                height: `${268 + distance * 48}px`,
-                marginTop: `${distance * 18}px`,
-                borderRadius: `${26 + distance * 3}px`,
-                transform: `rotate(${(index - centre) * 1.35}deg)`,
-                zIndex: 20 - Math.round(distance),
-                background: still ? undefined : WASHES[index % WASHES.length],
-              }}
+              style={{ "--fan-i": index, "--fan-y": `${Math.round(distance * 22)}px` }}
             >
-              {still ? <img src={still} alt={video.title || "Studio work"} loading={index > 2 ? "lazy" : "eager"} /> : null}
+              {still
+                ? <img src={still} alt={video.title || "Studio work"} loading={index > 2 ? "lazy" : "eager"} />
+                : <span className="lh-card-wash" style={{ background: WASHES[index % WASHES.length] }} />}
             </figure>;
           })}
         </div>

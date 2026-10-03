@@ -1410,3 +1410,33 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .admin-shell.is-collapsed aside nav a,
 .admin-shell.is-collapsed aside form button { justify-content: center; gap: 0; font-size: 0; }
 @media (prefers-reduced-motion: reduce) { .admin-shell { transition: none; } }
+
+/* ---- admin page patterns on the design tokens (phase 2a) ---- */
+/* density and hairlines only: the reference's small type ramp, 0.5px rules and
+   --space-* rhythm, applied to the classes every admin page already uses. No
+   component or markup change is required for any of this. */
+.admin-title { padding-bottom: var(--space-5, 20px); margin-bottom: var(--space-6, 24px); border-bottom: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); }
+.admin-title h1 { font-size: var(--font-size-title, 20px); letter-spacing: -.02em; margin: 0 0 var(--space-2, 8px); }
+.admin-title > p:first-child, .admin-section-heading > p:first-child { font-size: var(--font-size-2xs, 9px); letter-spacing: .16em; text-transform: uppercase; color: var(--color-text-muted, var(--muted-foreground)); margin: 0 0 var(--space-2, 8px); }
+.admin-lede { font-size: var(--font-size-body-sm, 14px); line-height: 1.6; color: var(--color-text-secondary, var(--muted-foreground)); max-width: 72ch; margin: 0; }
+.admin-section-heading { margin: var(--space-8, 32px) 0 var(--space-3, 12px); }
+.admin-section-heading h2 { font-size: var(--font-size-title-sm, 18px); letter-spacing: -.02em; margin: 0; }
+
+/* tables: hairline rows, token spacing, a quiet header, and a hover state */
+.admin-table { border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-md, 6px); overflow: hidden; }
+.admin-table b { font-size: var(--font-size-xs, 10px); letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted, var(--muted-foreground)); font-weight: 500; }
+.admin-table > div + div { border-top: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); }
+.admin-table > div:hover { background: var(--color-surface-hover, #f3f3f3); }
+.admin-table span, .admin-table td { font-size: var(--font-size-label, 13px); }
+.admin-table small { font-size: var(--font-size-caption, 12px); color: var(--color-text-muted, var(--muted-foreground)); }
+
+/* forms: control radius, one border weight, and a real focus ring */
+.admin-form input, .admin-form select, .admin-form textarea, .contact-form input, .contact-form select, .contact-form textarea { border: var(--border-width-control, 1px) solid var(--color-border, var(--border)); border-radius: var(--radius-control, 5px); font-size: var(--font-size-body-sm, 14px); }
+.admin-form label, .contact-form label { font-size: var(--font-size-caption, 12px); letter-spacing: .04em; color: var(--color-text-secondary, var(--muted-foreground)); }
+.admin-form input:focus-visible, .admin-form select:focus-visible, .admin-form textarea:focus-visible { outline: var(--border-width-focus, 2px) solid var(--color-focus-ring); outline-offset: 1px; }
+
+/* empty and status states share the reference's tinted surfaces */
+.empty-state, .admin-empty-state { background: var(--color-surface-subtle, #f6f6f6); border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-md, 6px); padding: var(--space-8, 32px) var(--space-6, 24px); text-align: center; font-size: var(--font-size-body-sm, 14px); color: var(--color-text-secondary, var(--muted-foreground)); }
+.success-note, .form-error { border-radius: var(--radius-sm, 4px); padding: var(--space-3, 12px) var(--space-4, 16px); font-size: var(--font-size-body-sm, 14px); border-width: var(--border-width-hairline, .5px); border-style: solid; }
+.success-note { background: var(--color-success-surface, #e9f8ef); border-color: #cfe9d9; color: #1c6b3c; }
+.form-error { background: var(--color-danger-surface, #fbecec); border-color: #f0d3d2; color: var(--color-danger, #ba3a35); }

@@ -1693,3 +1693,24 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 /* the student sidebar carries the learner's email and a sign-out action */
 .admin-shell-email { margin: 0; padding: 12px 14px 4px; font-size: 12px; color: #8F9283; overflow-wrap: anywhere; }
 @media (max-width: 899px) { .admin-nav-trigger { font-size: 12px; letter-spacing: .08em; } }
+
+/* ---- shell fix: desktop is a real two-column layout ---- */
+/* The MENU trigger was visible at every width because an earlier 44px-touch-target
+   rule set display:inline-flex on .admin-shell .admin-nav-trigger at specificity
+   0,2,0, beating the base .admin-nav-trigger{display:none} at 0,1,0. As a direct
+   child of the grid it then took the second column and pushed .admin-main onto a
+   new row, so the content rendered below the sidebar. Mobile-only controls are now
+   suppressed explicitly on desktop rather than relying on that base rule. */
+@media (min-width: 901px) {
+  .admin-shell { display: grid !important; grid-template-columns: 260px minmax(0, 1fr) !important; align-items: start; min-height: 100vh; }
+  .admin-shell aside { position: sticky !important; top: 0; width: auto !important; height: 100vh; overflow-y: auto; overscroll-behavior: contain; }
+  .admin-shell .admin-main, .admin-shell .admin-shell-main { grid-column: 2; min-width: 0; }
+  .admin-nav-trigger, .admin-nav-close, .admin-shell-toggle, .admin-nav-scrim { display: none !important; }
+}
+@media (max-width: 900px) {
+  .admin-shell { grid-template-columns: minmax(0, 1fr) !important; }
+  .admin-shell .admin-main { grid-column: 1; }
+  /* the drawer needs an explicit box now that the desktop rule sets a height */
+  .admin-shell aside { position: fixed; top: 0; bottom: 0; left: 0; height: auto; }
+  .admin-nav-trigger { display: inline-flex !important; }
+}

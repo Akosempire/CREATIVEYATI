@@ -102,3 +102,42 @@ academy home and the redesigned navigation are also live.
 
 Primitives exist but are barely adopted: `Drawer` is used nowhere, `SubmitButton`
 in one place. Phase 3 and 4 are mostly adoption, not construction.
+
+---
+
+## Content boundaries (do not cross these)
+
+Studio work and student work are separate content, with separate sources.
+
+| | Source | Appears on |
+| --- | --- | --- |
+| **Studio work** - client films made by Frame / Motion | `public.videos` (14 published rows) | `/`, `/work`, the studio portfolio, the home hero gallery |
+| **Student work** - films made by students during a course | **its own table, not yet built** | Academy home showcase, `/academy/student-work`, "Student work from this course" on course detail |
+
+Rules that follow from this:
+
+1. **Never read `videos` for an Academy student-work section.** The 14 published rows are client
+   commissions. Presenting them as student output would be an untrue claim to a prospective
+   student, which is the one thing this site cannot afford.
+2. **Never merge the two into one gallery**, not even with a filter or a tag. They answer
+   different questions - "can this studio do the work?" versus "can I learn to do this?" - and a
+   mixed grid answers neither.
+3. **A student work item needs**: student name, course, the film itself, a poster frame, an
+   optional note about the project, and the consent of the student to be shown publicly.
+   Consent is a field, not an assumption.
+4. Until that table exists, the Academy student-work sections render a **labelled placeholder**
+   (`[Student film still]` per the design brief), not borrowed studio stills.
+
+### Effect on the build order
+
+The Academy student-work phase becomes **schema first**: a `student_work` table, an admin screen
+to add and publish items with a consent flag, then the public gallery. It cannot be built as a
+pure UI phase, and it must not be unblocked by reusing `videos`.
+
+### Note on editing this repository's text files
+
+PowerShell text writes in this environment are only safe for ASCII. Appending or rewriting a file
+that contains a non-ASCII character (an em dash, a middle dot, the naira sign) writes a single-byte
+sequence and leaves the file invalid UTF-8, which breaks the build with
+`invalid utf-8 sequence of 1 bytes`. Use the editor tool for any file containing non-ASCII, or keep
+the content ASCII.

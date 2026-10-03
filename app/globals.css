@@ -1618,3 +1618,14 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .fm-inbox-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .fm-inbox-hint { font-size: 12px; color: #8F9283; }
 @media (max-width: 900px) { .fm-inbox { grid-template-columns: minmax(0, 1fr); } .fm-inbox-detail { order: -1; } }
+
+/* ---- fix: the mobile menu rendered with every link hidden ---- */
+/* .site-header nav a { display: none } is the header's mobile rule for its inline
+   nav, at specificity 0,1,2 - higher than a plain .mobile-menu-link class. The
+   menu markup lives inside that header, so the rule emptied the sheet: the menu
+   opened and showed no pages. Appended, never rewritten, so no existing byte in
+   this file is touched. */
+.mobile-menu nav { display: block !important; }
+.mobile-menu .mobile-menu-link { display: flex !important; }
+.mobile-menu .mobile-menu-sub a { display: block !important; }
+.mobile-menu .mobile-menu-social a { display: inline-flex !important; }

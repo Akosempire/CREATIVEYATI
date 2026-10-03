@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Drawer from "@/Components/Drawer";
+import { EmptyState } from "@/Components/Feedback";
 import { activityFacets, filterActivity, getActivity } from "@/lib/data/activity";
 
 export const metadata = { title: "Activity" };
@@ -75,6 +76,7 @@ export default async function AdminActivityPage({ searchParams }) {
           </Drawer>
         </span>
       </div>)}
-    </div> : <p className="empty-state admin-empty-state">{applied > 0 ? "No entries match those filters. Clear them to see the whole log." : "Nothing has been logged yet. Publishing, revoking a certificate, recording a payment and changing settings all write here once they call the log."}</p>}
+    </div> : <EmptyState title={applied > 0 ? "Nothing matches those filters" : "Nothing logged yet"}>{applied > 0 ? "Clear the filters to see the whole log." : "Publishing, revoking a certificate, recording a payment and changing settings all write here once they call the log."}</EmptyState>}
   </>;
 }
+

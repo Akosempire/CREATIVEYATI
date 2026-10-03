@@ -8,14 +8,21 @@ import { revokeCertificate } from "@/app/admin/actions";
 // of a cramped disclosure inside a table cell
 export default function RevokeCertificateDialog({ id, serial }) {
   const dialog = useRef(null);
+  const triggerRef = useRef(null);
+
+  // returning focus to the row's trigger is what the platform will not do
+  function close() {
+    dialog.current?.close();
+    triggerRef.current?.focus();
+  }
 
   return <>
-    <button className="inline-link" type="button" onClick={() => dialog.current?.showModal()}>Revoke</button>
+    <button ref={triggerRef} className="inline-link" type="button" onClick={() => dialog.current?.showModal()}>Revoke</button>
     <dialog
       ref={dialog}
       className="admin-dialog"
       aria-labelledby={`revoke-title-${id}`}
-      onClick={(event) => { if (event.target === dialog.current) dialog.current?.close(); }}
+      onClick={(event) => { if (event.target === dialog.current) close(); }}
     >
       <form className="admin-form" action={revokeCertificate}>
         <input type="hidden" name="id" value={id} />
@@ -23,7 +30,7 @@ export default function RevokeCertificateDialog({ id, serial }) {
         <p>The public verification page will report this certificate as revoked, with the reason below recorded. Anyone who checks the serial will see it.</p>
         <label>Reason<input name="reason" placeholder="Issued in error, chargeback, misconduct…" required /></label>
         <div className="admin-dialog-actions">
-          <button className="button button-secondary" type="button" onClick={() => dialog.current?.close()}>Cancel</button>
+          <button className="button button-secondary" type="button" onClick={close}>Cancel</button>
           <SubmitButton className="button" pendingLabel="Revoking…">Revoke certificate</SubmitButton>
         </div>
       </form>

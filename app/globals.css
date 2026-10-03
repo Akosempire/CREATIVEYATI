@@ -1483,3 +1483,21 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .lesson-watermark span:nth-child(1) { top: 12px; left: 14px; }
 .lesson-watermark span:nth-child(2) { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-18deg); font-size: .8rem; }
 .lesson-watermark span:nth-child(3) { right: 14px; bottom: 50px; }
+
+/* ---- fixes: dismissible mobile sheet, and a scrim that actually renders ---- */
+/* the old scrim was a pseudo-element with no handler, so the sheet could only be
+   escaped by navigating */
+.admin-nav-close, .admin-nav-scrim { display: none; }
+/* --overlay is not defined in this palette, so the backdrop was rendering
+   transparent. use the token, with a literal fallback */
+.admin-dialog::backdrop { background: var(--color-overlay, rgba(25, 25, 25, .32)); }
+body:has(.admin-shell.is-nav-open) { overflow: hidden; }
+@media (max-width: 899px) {
+  /* collapsing is meaningless when the sidebar is an overlay */
+  .admin-shell .admin-shell-toggle { display: none; }
+  .admin-shell .admin-shell-head { justify-content: space-between; }
+  .admin-nav-close { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: auto; padding: 0; font-size: 13px; line-height: 1; background: transparent; border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-control, 5px); cursor: pointer; }
+  .admin-shell.is-nav-open .admin-nav-scrim { display: block; position: fixed; inset: 0; z-index: calc(var(--z-overlay, 1100) - 1); width: 100%; height: 100%; padding: 0; border: 0; background: var(--color-overlay, rgba(25, 25, 25, .32)); cursor: pointer; }
+  /* the sheet must be above the scrim */
+  .admin-shell aside { z-index: var(--z-overlay, 1100); }
+}

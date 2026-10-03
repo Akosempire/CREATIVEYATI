@@ -25,6 +25,18 @@ export default function AdminShell({ logout, children }) {
     } catch {
       // storage can be unavailable; an expanded sidebar is a fine default
     }
+    // the overlay sheet has to be dismissible from the keyboard too, not only by
+    // tapping the scrim. body scroll is locked in CSS with :has()
+    const onKey = (event) => {
+      if (event.key !== "Escape") return;
+      const element = shell.current;
+      if (element?.classList.contains("is-nav-open")) {
+        element.classList.remove("is-nav-open");
+        element.querySelector(".admin-nav-trigger")?.setAttribute("aria-expanded", "false");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   function toggle() {
@@ -67,10 +79,13 @@ export default function AdminShell({ logout, children }) {
         >
           <AdminIcon name="arrow" />
         </button>
+        <button className="admin-nav-close" type="button" onClick={toggleNav} aria-label="Close navigation">✕</button>
       </div>
       <AdminNavigation />
       <form action={logout}><button type="submit"><AdminIcon name="logout" />Log out</button></form>
     </aside>
+    {/* a real element, so tapping the scrim actually closes the sheet */}
+    <button className="admin-nav-scrim" type="button" onClick={toggleNav} aria-label="Close navigation" tabIndex={-1} />
     <button className="admin-nav-trigger" type="button" onClick={toggleNav} aria-expanded="false" aria-label="Open navigation">☰</button>
     <section className="admin-main">{children}</section>
   </div>;

@@ -1629,3 +1629,34 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .mobile-menu .mobile-menu-link { display: flex !important; }
 .mobile-menu .mobile-menu-sub a { display: block !important; }
 .mobile-menu .mobile-menu-social a { display: inline-flex !important; }
+
+/* ---- student sign in: two panels on desktop, form only on mobile ---- */
+.fm-auth { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; background: #F5F5F0; }
+.fm-auth-aside { display: flex; flex-direction: column; justify-content: space-between; gap: 40px; padding: 44px; background: #11120E; color: #F5F5F0; }
+.fm-auth-brand, .fm-auth-logo { font-family: "Bricolage Grotesque", Georgia, serif; font-weight: 600; letter-spacing: -.02em; }
+.fm-auth-aside h2 { margin: 0 0 12px; font-family: "Bricolage Grotesque", Georgia, serif; font-size: 32px; line-height: 1.1; letter-spacing: -.03em; }
+.fm-auth-aside p { max-width: 34ch; margin: 0; font-size: 15px; line-height: 1.6; color: #C9CBC0; }
+.fm-auth-frame { display: block; height: 220px; background: linear-gradient(140deg, #1B1C16, #2C2E22 55%, #3A3D27); border: 1px solid #2A2A22; border-radius: 14px; }
+.fm-auth-main { display: flex; align-items: center; justify-content: center; padding: 44px 24px; }
+.fm-auth-card { width: 100%; max-width: 420px; padding: 32px; background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; }
+.fm-auth-logo { display: none; }
+.fm-auth-label { margin: 0 0 8px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8F9283; }
+.fm-auth-card h1 { margin: 0 0 6px; font-family: "Bricolage Grotesque", Georgia, serif; font-size: 28px; letter-spacing: -.03em; }
+.fm-auth-lede { margin: 0 0 20px; font-size: 14px; color: #6B6A68; }
+.fm-auth-form { display: grid; gap: 14px; }
+.fm-auth-forgot { margin: -4px 0 0; font-size: 13px; text-align: right; }
+.fm-auth-alt { margin: 18px 0 0; font-size: 14px; text-align: center; color: #6B6A68; }
+/* the lime language is scoped to the dashboards, so the auth screen sets its own */
+.fm-auth .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; background: #C6F000; border: 1px solid #C6F000; border-radius: 10px; color: #11120E; font-weight: 500; }
+.fm-auth-submit { width: 100%; }
+.fm-auth .success-note { background: #EAF7C9; border: 1px solid #D3E9A4; border-radius: 10px; padding: 10px 14px; color: #22330A; font-size: 14px; }
+.fm-auth .form-error { background: #FBE9E7; border: 1px solid #F0D5D1; border-radius: 10px; padding: 10px 14px; color: #7A2A22; font-size: 14px; }
+.fm-auth input { border: 1px solid #E3E3DA; border-radius: 8px; }
+.fm-auth input:focus-visible { outline: 2px solid rgba(198, 240, 0, .55); outline-offset: 1px; }
+@media (max-width: 899px) {
+  .fm-auth { grid-template-columns: minmax(0, 1fr); }
+  .fm-auth-aside { display: none; }
+  .fm-auth-logo { display: block; margin-bottom: 18px; font-size: 15px; }
+  .fm-auth-main { align-items: flex-start; padding: 32px 18px; }
+  .fm-auth-card { padding: 24px; }
+}

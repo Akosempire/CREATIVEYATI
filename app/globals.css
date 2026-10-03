@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Mochiy+Pop+One&display=swap");
 @import "tailwindcss";
 
@@ -1511,3 +1512,62 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .activity-detail dt { font-size: var(--font-size-xs, 10px); letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted, var(--muted-foreground)); }
 .activity-detail dd { margin: 0; font-size: var(--font-size-body-sm, 14px); word-break: break-word; }
 @media (max-width: 700px) { .activity-detail > div { grid-template-columns: 1fr; gap: 4px; } }
+
+
+/* ---- Phase A: Frame / Motion dashboard language ---- */
+/* Scoped to the dashboards on purpose. The marketing site keeps its own palette;
+   custom properties inherit, so everything inside picks the language up without
+   a single page being rewritten. Gloves-off global tokens would restyle the
+   public site too, which is not what the brief asks for. */
+.admin-shell, .learn-area {
+  --fm-ink: #11120E;
+  --fm-ink-soft: #C9CBC0;
+  --fm-ink-dim: #8F9283;
+  --fm-page: #F5F5F0;
+  --fm-card: #FFFFFF;
+  --fm-line: #E3E3DA;
+  --accent: #C6F000;
+  --accent-strong: #9AC400;
+  --background: #F5F5F0;
+  --foreground: #11120E;
+  --border: #E3E3DA;
+  --muted-foreground: #6B6A68;
+  --color-accent: #C6F000;
+  --color-surface: #FFFFFF;
+  --color-border: #E3E3DA;
+  --color-text: #11120E;
+  --color-text-secondary: #6B6A68;
+  --color-text-muted: #8F9283;
+  --color-success-surface: #EAF7C9;
+  --color-warning-surface: #FFF4DC;
+  --color-danger-surface: #FBE9E7;
+  --radius-md: 14px;
+  --radius-lg: 14px;
+  --layout-sidebar-expanded: 260px;
+  background: #F5F5F0;
+  color: #11120E;
+  font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+}
+/* titles and big numbers take the grotesque; body stays DM Sans */
+.admin-shell h1, .admin-shell h2, .admin-shell h3,
+.learn-area h1, .learn-area h2, .learn-area h3 { font-family: "Bricolage Grotesque", Georgia, serif; font-weight: 600; letter-spacing: -.03em; }
+.admin-shell .admin-title h1, .learn-area .page-title { font-size: 36px; line-height: 1.06; }
+.admin-shell .admin-lede, .learn-area .admin-lede { font-size: 14px; max-width: 68ch; }
+/* the sidebar is near-black with muted text and a lime active pill */
+.admin-shell aside, .learn-area aside { background: #11120E; color: #C9CBC0; border-right: 0; }
+.admin-shell aside a, .learn-area aside a { color: #C9CBC0; }
+.admin-shell aside nav a.is-active, .learn-area aside nav a.is-active { background: #C6F000; color: #11120E; border-radius: 999px; font-weight: 500; }
+.admin-shell aside .wordmark, .learn-area aside .wordmark { color: #F5F5F0; }
+.admin-shell .admin-shell-toggle, .admin-shell .admin-nav-close { border-color: #2A2A22; color: #C9CBC0; }
+/* cards: white, one hairline, 14px radius, no heavy shadows */
+.admin-shell .admin-table, .learn-area .admin-table { background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; }
+.admin-shell .admin-table b, .learn-area .admin-table b { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #8F9283; }
+.admin-shell .admin-table > div:hover { background: #FAFAF6; }
+/* 44px minimum on actions, never on inline text links */
+.admin-shell .button, .admin-shell aside nav a, .admin-shell .admin-nav-trigger,
+.learn-area .button, .learn-area aside nav a { min-height: 44px; display: inline-flex; align-items: center; }
+/* lime always carries near-black text: 12.6:1, well past 4.5:1 */
+.admin-shell .button, .learn-area .button { background: #C6F000; color: #11120E; border-color: #C6F000; border-radius: 10px; }
+.admin-shell .button-secondary, .learn-area .button-secondary { background: #FFFFFF; color: #11120E; border: 1px solid #E3E3DA; }
+.admin-shell .success-note { background: #EAF7C9; border-color: #D3E9A4; color: #22330A; }
+.admin-shell .form-error, .learn-area .form-error { background: #FBE9E7; border-color: #F0D5D1; color: #7A2A22; }

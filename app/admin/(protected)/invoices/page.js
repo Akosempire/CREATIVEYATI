@@ -1,5 +1,7 @@
 import Link from "next/link";
 import InvoiceLineItems from "@/Components/InvoiceLineItems";
+import SubmitButton from "@/Components/SubmitButton";
+import { EmptyState } from "@/Components/Feedback";
 import { markInvoicePaid, saveInvoice, updateInvoiceStatus } from "@/app/admin/actions";
 import { formatMoney } from "@/lib/data/courses";
 import { financeSummary, formatInvoiceDate, getAdminInvoices, isOverdue } from "@/lib/data/invoices";
@@ -37,7 +39,7 @@ export default async function AdminInvoicesPage({ searchParams }) {
         <label>Valid until<input name="validUntil" type="date" /></label>
         <InvoiceLineItems />
         <label className="form-wide">Notes and terms<textarea name="notes" /></label>
-        <button className="button" type="submit">Create document</button>
+        <SubmitButton className="button" pendingLabel="Creating...">Create document</SubmitButton>
       </form>
     </details>
 
@@ -70,6 +72,7 @@ export default async function AdminInvoicesPage({ searchParams }) {
           </details>}
         </span>
       </div>)}
-    </div> : <p className="empty-state admin-empty-state">No documents yet. Create a quotation to send a client a priced scope of work.</p>}
+    </div> : <EmptyState title="No documents yet">Create a quotation to send a client a priced scope of work, then share its private link.</EmptyState>}
   </>;
 }
+

@@ -11,9 +11,10 @@ import LearnSession from "@/Components/LearnSession";
 // deliberately, so the two dashboards cannot drift into looking like two products.
 const LINKS = [
   { href: "/learn", label: "Dashboard", icon: "home" },
-  { href: "/learn#courses", label: "My courses", icon: "book" },
+  { href: "/learn/courses", label: "My courses", icon: "book" },
   { href: "/learn/certificates", label: "Certificates", icon: "award" },
-  { href: "/learn#orders", label: "Orders", icon: "folder" },
+  { href: "/learn/orders", label: "Orders", icon: "folder" },
+  { href: "/learn/profile", label: "Profile", icon: "user" },
 ];
 
 const STORAGE_KEY = "cy-learn-sidebar";
@@ -82,3 +83,4 @@ export default function StudentShell({ site, user, signOut, children }) {
     <section className="admin-main">{children}</section>
   </div>;
 }
+

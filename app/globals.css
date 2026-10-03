@@ -1689,3 +1689,7 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .fm-learn-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .fm-learn-actions .button { min-height: 44px; display: inline-flex; align-items: center; }
 @media (max-width: 479px) { .fm-learn-actions { width: 100%; } .fm-learn-actions .button { flex: 1 1 auto; justify-content: center; } }
+
+/* the student sidebar carries the learner's email and a sign-out action */
+.admin-shell-email { margin: 0; padding: 12px 14px 4px; font-size: 12px; color: #8F9283; overflow-wrap: anywhere; }
+@media (max-width: 899px) { .admin-nav-trigger { font-size: 12px; letter-spacing: .08em; } }

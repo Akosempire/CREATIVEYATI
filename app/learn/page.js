@@ -59,7 +59,7 @@ export default async function LearnPage({ searchParams }) {
       <div className="fm-stat"><small>Certificates earned</small><strong>{certificates.length}</strong></div>
     </div>
 
-    {states.length ? <section className="fm-my-courses">
+    {states.length ? <section className="fm-my-courses" id="courses">
       <div className="fm-section-head"><h2>My courses</h2></div>
       <div className="learning-grid">{states.map(({ item, percent, nextLesson }) => <article key={item.id}>
         {item.course.coverImageUrl ? <Image src={item.course.coverImageUrl} alt={item.course.title + " cover"} width={640} height={360} sizes="(max-width: 767px) 90vw, 180px" unoptimized /> : null}
@@ -76,7 +76,8 @@ export default async function LearnPage({ searchParams }) {
 
     {resources.length > 0 && <section className="student-downloads"><h2>Course materials</h2><div className="admin-list">{resources.map((resource) => <div key={resource.id}><span>{resource.title}<small>{resource.course.title} / {resource.lessonTitle}</small></span><span><a className="inline-link" href={"/api/learn/resources/" + resource.id} target="_blank" rel="noreferrer">View</a>{resource.allowDownload && <a className="inline-link" href={"/api/learn/resources/" + resource.id + "?download=1"}>Download</a>}</span></div>)}</div></section>}
 
-    <section className="purchase-history"><h2>Purchase history</h2>{orders.length ? <div className="admin-list">{orders.map((order) => <div key={order.id}><span>{order.courses?.title || order.reference}<small>{order.reference}</small></span><strong>{formatMoney(order.amount_minor, order.currency)} / {order.payment_status}</strong></div>)}</div> : <p>No purchases yet.</p>}</section>
+    <section className="purchase-history" id="orders"><h2>Purchase history</h2>{orders.length ? <div className="admin-list">{orders.map((order) => <div key={order.id}><span>{order.courses?.title || order.reference}<small>{order.reference}</small></span><strong>{formatMoney(order.amount_minor, order.currency)} / {order.payment_status}</strong></div>)}</div> : <p>No purchases yet.</p>}</section>
   </section>;
 }
+
 

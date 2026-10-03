@@ -152,7 +152,7 @@ export async function saveVideo(formData) {
   revalidatePath("/");
   revalidatePath("/work");
   revalidatePath(`/work/${data.slug}`);
-  redirect("/admin/videos");
+  await recordActivity({ title: "Work saved", description: "portfolio item added or edited", href: "/admin/videos", entity: "video" }); redirect("/admin/videos");
 }
 export async function saveCategory(formData) { await admin(); const name = String(formData.get("name") || "").trim(); const slug = String(formData.get("slug") || "").trim(); if (!name || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error("Use a category name and lowercase slug."); const supabase = await createSupabaseServerClient(); const { error } = await supabase.from("categories").insert({ name, slug, description:String(formData.get("description") || "") }); if (error) throw new Error("Category could not be saved."); revalidatePath("/"); revalidatePath("/admin/categories"); }
 export async function updateEnquiry(formData) { await admin(); const supabase = await createSupabaseServerClient(); const { error } = await supabase.from("enquiries").update({ status:String(formData.get("status")), internal_notes:String(formData.get("notes") || "") }).eq("id", String(formData.get("id"))); if (error) redirect(`/admin/enquiries?error=${encodeURIComponent("The enquiry could not be updated.")}`); revalidatePath("/admin/enquiries"); redirect("/admin/enquiries?saved=1"); }
@@ -239,7 +239,7 @@ export async function saveContactSettings(formData) {
   if (!parsed.success) redirect(`/admin/settings/contact?error=${encodeURIComponent(parsed.error.issues[0].message)}`);
   await saveSetting("contact", parsed.data);
   ["/", "/about", "/contact", "/services"].forEach(revalidatePath);
-  redirect("/admin/settings/contact?saved=1");
+  await recordActivity({ title: "Contact settings updated", description: "how clients reach the studio", href: "/admin/settings/contact", entity: "settings" }); redirect("/admin/settings/contact?saved=1");
 }
 
 export async function saveSeoSettings(formData) {
@@ -248,7 +248,7 @@ export async function saveSeoSettings(formData) {
   if (!parsed.success) redirect(`/admin/settings/seo?error=${encodeURIComponent(parsed.error.issues[0].message)}`);
   await saveSetting("seo", parsed.data);
   revalidatePath("/", "layout");
-  redirect("/admin/settings/seo?saved=1");
+  await recordActivity({ title: "SEO settings updated", description: "how the site is described to search", href: "/admin/settings/seo", entity: "settings" }); redirect("/admin/settings/seo?saved=1");
 }
 
 export async function saveEmailSettings(formData) {
@@ -478,4 +478,5 @@ export async function grantCourseAccess(formData) {
   await admin(); const service = createSupabaseServiceClient(); const email = String(formData.get("email") || "").trim().toLowerCase(); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/students`; const { data, error: usersError } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 }); if (usersError) redirect(`${destination}?error=${encodeURIComponent("Student accounts could not be loaded.")}`); const user = data?.users?.find((item) => item.email?.toLowerCase() === email); if (!user) redirect(`${destination}?error=${encodeURIComponent("No student account uses that email.")}`); const { error } = await service.from("enrolments").upsert({ student_id: user.id, course_id: courseId, access_source: "manual", active: true, revoked_at: null }, { onConflict: "student_id,course_id" }); if (error) redirect(`${destination}?error=${encodeURIComponent("Course access could not be granted.")}`); revalidatePath(destination); redirect(`${destination}?saved=granted`);
 }
 export async function revokeCourseAccess(formData) { const actor = await admin(); const service = createSupabaseServiceClient(); const id = String(formData.get("id") || ""); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/students`; const { error } = await service.from("enrolments").update({ active: false, revoked_at: new Date().toISOString(), granted_by: actor.id === "direct-admin" ? null : actor.id }).eq("id", id); if (error) redirect(`${destination}?error=${encodeURIComponent("Course access could not be revoked.")}`); revalidatePath(destination); redirect(`${destination}?saved=revoked`); }
+
 

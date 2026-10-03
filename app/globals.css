@@ -1571,3 +1571,25 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .admin-shell .button-secondary, .learn-area .button-secondary { background: #FFFFFF; color: #11120E; border: 1px solid #E3E3DA; }
 .admin-shell .success-note { background: #EAF7C9; border-color: #D3E9A4; color: #22330A; }
 .admin-shell .form-error, .learn-area .form-error { background: #FBE9E7; border-color: #F0D5D1; color: #7A2A22; }
+
+/* ---- Phase B: shared components ---- */
+.fm-tabs { display: flex; flex-wrap: wrap; gap: var(--space-2, 8px); margin: 0 0 var(--space-5, 20px); }
+.fm-tab { display: inline-flex; align-items: center; gap: var(--space-2, 8px); min-height: 44px; padding: 0 var(--space-4, 16px); background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 999px; color: #11120E; font-size: 14px; }
+.fm-tab:hover { border-color: #CFCFC4; }
+.fm-tab.is-active { background: #11120E; border-color: #11120E; color: #FFFFFF; }
+.fm-tab-count { font-variant-numeric: tabular-nums; color: #8F9283; }
+.fm-tab.is-active .fm-tab-count { color: rgba(255, 255, 255, .68); }
+.fm-badge { display: inline-flex; align-items: center; padding: 3px 10px; background: #E9E9E1; border-radius: 999px; font-size: 12px; font-weight: 500; color: #3A3A34; white-space: nowrap; }
+.fm-badge.is-success { background: #EAF7C9; color: #22330A; }
+.fm-badge.is-warning { background: #FFF4DC; color: #5C3F00; }
+.fm-badge.is-error { background: #FBE9E7; color: #7A2A22; }
+.fm-badge.is-accent { background: #C6F000; color: #11120E; }
+.fm-skeleton { display: block; background: linear-gradient(90deg, #EFEFE9 25%, #F7F7F2 37%, #EFEFE9 63%); background-size: 400% 100%; animation: fm-shimmer 1.4s ease infinite; }
+@keyframes fm-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.fm-skeleton-table { display: grid; gap: var(--space-4, 16px); padding: var(--space-5, 20px); background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; }
+.fm-skeleton-table > div { display: flex; gap: var(--space-6, 24px); }
+.fm-empty { padding: 44px var(--space-6, 24px); background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; text-align: center; }
+.fm-empty svg { display: block; margin: 0 auto var(--space-4, 16px); color: #9AC400; }
+.fm-empty h3 { margin: 0 0 var(--space-2, 8px); font-size: 18px; }
+.fm-empty p { max-width: 48ch; margin: 0 auto var(--space-4, 16px); font-size: 14px; line-height: 1.6; color: #6B6A68; }
+@media (prefers-reduced-motion: reduce) { .fm-skeleton { animation: none; } }

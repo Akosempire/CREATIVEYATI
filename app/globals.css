@@ -1309,3 +1309,87 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 /* ---- marquee: all projects, constant drift speed ---- */
 /* later longhand overrides the shorthand's 60s, so the speed tracks the count */
 .portfolio-home .lh-marquee { animation-duration: var(--marquee-duration, 60s); }
+
+/* ---- dashboard design tokens (phase 1a) ---- */
+/* Ported from the KORO/Waya settings-dashboard reference so the shell and page
+   patterns are built against one vocabulary instead of ad-hoc values. Additive
+   only: no existing token is redefined. Accent-derived values follow the present
+   brand colour, never the reference's purple. */
+:root {
+  /* layout */
+  --layout-shell-max: none;
+  --layout-sidebar-expanded: 247px;
+  --layout-sidebar-collapsed: 60px;
+  --layout-content-gutter: 20px;
+  --layout-content-gutter-compact: 16px;
+  --layout-content-gutter-large: 24px;
+  --layout-content-gutter-tablet: 24px;
+  --layout-content-gutter-mobile: 16px;
+  --layout-content-readable-max: 1440px;
+  --layout-settings-column: 480px;
+  --layout-search-width: 810px;
+  --layout-search-height: 525px;
+  --layout-dialog-width: 500px;
+  --audit-drawer-width: clamp(540px, 30vw, 600px);
+
+  /* spacing: 4px base with 2px half steps */
+  --space-0: 0; --space-0-5: 2px; --space-1: 4px; --space-1-5: 6px;
+  --space-2: 8px; --space-2-5: 10px; --space-3: 12px; --space-3-5: 14px;
+  --space-4: 16px; --space-4-5: 18px; --space-5: 20px; --space-6: 24px;
+  --space-7: 28px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+  --space-14: 56px; --space-16: 64px; --space-18: 72px; --space-20: 80px;
+
+  /* radii */
+  --radius-xs: 3px; --radius-sm: 4px; --radius-control: 5px; --radius-md: 6px;
+  --radius-lg: 8px; --radius-dialog: 10px; --radius-sheet: 12px;
+  --radius-round: 50%; --radius-pill: 999px;
+
+  /* borders: the hairline is what makes this design read sharp, not heavy */
+  --border-width-hairline: 0.5px;
+  --border-width-control: 1px;
+  --border-width-focus: 2px;
+
+  /* elevation */
+  --shadow-popover: 0 12px 35px rgba(0, 0, 0, .12);
+  --shadow-menu: 0 12px 28px rgba(0, 0, 0, .10);
+  --shadow-dialog: 0 20px 80px rgba(0, 0, 0, .20);
+  --shadow-toast: 0 10px 30px rgba(0, 0, 0, .18);
+  --shadow-tooltip: 0 4px 18px rgba(0, 0, 0, .16);
+  --shadow-card-interactive: 0 10px 28px rgba(0, 0, 0, .08);
+
+  /* motion: nothing hard-codes a duration */
+  --motion-duration-exit: 50ms;
+  --motion-duration-quick: 150ms;
+  --motion-duration-sidebar: 180ms;
+  --motion-duration-base: 250ms;
+  --motion-duration-slow: 350ms;
+  --motion-duration-emphasis: 500ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  /* stacking */
+  --z-popover: 1000; --z-overlay: 1100; --z-toast: 1200; --z-tooltip: 2000;
+
+  /* colour aliases onto the existing palette; accent stays the present brand */
+  --color-page: var(--background);
+  --color-surface: var(--background);
+  --color-surface-panel: var(--surface, #f8f8f8);
+  --color-surface-subtle: #f6f6f6;
+  --color-surface-hover: #f3f3f3;
+  --color-surface-selected: #eeeeee;
+  --color-text: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-muted: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-focus-ring: color-mix(in srgb, var(--accent) 25%, transparent);
+  --color-danger: #ba3a35;
+  --color-success: #00a94f;
+  --color-warning: #d89600;
+  --color-info: #25a4ff;
+  --color-overlay: var(--overlay, rgba(25, 25, 25, .32));
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-duration-sidebar: 1ms; --motion-duration-emphasis: 1ms; }
+}

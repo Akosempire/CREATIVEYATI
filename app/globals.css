@@ -1501,3 +1501,13 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
   /* the sheet must be above the scrim */
   .admin-shell aside { z-index: var(--z-overlay, 1100); }
 }
+
+/* ---- activity log (phase 1b) ---- */
+.activity-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3, 12px); padding: var(--space-4, 16px); background: var(--color-surface-subtle, #f6f6f6); border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-md, 6px); }
+.activity-filters label { display: block; flex: 1 1 170px; }
+.activity-filter-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3, 12px); flex: 0 0 auto; }
+.activity-detail { display: grid; gap: var(--space-3, 12px); margin: 0; }
+.activity-detail > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--space-3, 12px); padding-bottom: var(--space-3, 12px); border-bottom: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); }
+.activity-detail dt { font-size: var(--font-size-xs, 10px); letter-spacing: .12em; text-transform: uppercase; color: var(--color-text-muted, var(--muted-foreground)); }
+.activity-detail dd { margin: 0; font-size: var(--font-size-body-sm, 14px); word-break: break-word; }
+@media (max-width: 700px) { .activity-detail > div { grid-template-columns: 1fr; gap: 4px; } }

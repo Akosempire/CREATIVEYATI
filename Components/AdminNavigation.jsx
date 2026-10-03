@@ -6,6 +6,7 @@ import { AdminIcon } from "@/Components/Icons";
 
 const links = [
   { href: "/admin", label: "Overview", icon: "home" },
+  { href: "/admin/activity", label: "Activity", icon: "folder" },
   { href: "/admin/videos", label: "Videos", icon: "video" },
   { href: "/admin/categories", label: "Categories", icon: "folder" },
   { href: "/admin/content", label: "Website content", icon: "folder" },

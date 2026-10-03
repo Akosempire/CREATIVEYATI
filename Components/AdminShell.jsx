@@ -44,6 +44,15 @@ export default function AdminShell({ logout, children }) {
     }
   }
 
+  // below 900px the sidebar becomes an overlay sheet rather than a column, so
+  // opening it is a different action from collapsing it and gets its own class
+  function toggleNav() {
+    const element = shell.current;
+    if (!element) return;
+    const open = element.classList.toggle("is-nav-open");
+    element.querySelector(".admin-nav-trigger")?.setAttribute("aria-expanded", String(open));
+  }
+
   return <div className="admin-shell" ref={shell}>
     <aside>
       <div className="admin-shell-head">
@@ -62,6 +71,7 @@ export default function AdminShell({ logout, children }) {
       <AdminNavigation />
       <form action={logout}><button type="submit"><AdminIcon name="logout" />Log out</button></form>
     </aside>
+    <button className="admin-nav-trigger" type="button" onClick={toggleNav} aria-expanded="false" aria-label="Open navigation">☰</button>
     <section className="admin-main">{children}</section>
   </div>;
 }

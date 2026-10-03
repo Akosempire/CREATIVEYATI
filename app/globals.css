@@ -1440,3 +1440,38 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .success-note, .form-error { border-radius: var(--radius-sm, 4px); padding: var(--space-3, 12px) var(--space-4, 16px); font-size: var(--font-size-body-sm, 14px); border-width: var(--border-width-hairline, .5px); border-style: solid; }
 .success-note { background: var(--color-success-surface, #e9f8ef); border-color: #cfe9d9; color: #1c6b3c; }
 .form-error { background: var(--color-danger-surface, #fbecec); border-color: #f0d3d2; color: var(--color-danger, #ba3a35); }
+
+/* ---- interface primitives (phase 2b) ---- */
+/* pending buttons: the platform gives no feedback between a server action being
+   submitted and the revalidated page arriving, which is what makes forms feel dead */
+.button[aria-busy="true"], button[aria-busy="true"] { opacity: .62; cursor: progress; }
+
+/* drawer: a right-hand sheet for detail that would otherwise be crushed into a
+   table cell. Sized from the reference's audit drawer token. */
+.drawer-dialog { margin: 0 0 0 auto; width: min(var(--audit-drawer-width, clamp(540px, 30vw, 600px)), 92vw); height: 100dvh; max-height: 100dvh; padding: 0; border: 0; border-left: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: 0; background: var(--color-surface, var(--background)); color: var(--color-text, var(--foreground)); }
+.drawer-dialog::backdrop { background: var(--color-overlay, rgba(25, 25, 25, .32)); }
+.drawer-dialog[open] { animation: drawer-in var(--motion-duration-base, 250ms) var(--motion-ease-out, cubic-bezier(.22, 1, .36, 1)); }
+@keyframes drawer-in { from { translate: 100% 0; } to { translate: 0 0; } }
+.drawer-body { display: flex; flex-direction: column; height: 100%; }
+.drawer-head { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--space-4, 16px); padding: var(--space-5, 20px) var(--space-6, 24px); border-bottom: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); }
+.drawer-head h2 { margin: 0; font-size: var(--font-size-title-sm, 18px); letter-spacing: -.02em; }
+.drawer-close { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; background: transparent; border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-control, 5px); cursor: pointer; }
+.drawer-close svg { transform: rotate(180deg); }
+.drawer-content { flex: 1 1 auto; overflow-y: auto; padding: var(--space-6, 24px); }
+@media (prefers-reduced-motion: reduce) { .drawer-dialog[open] { animation: none; } }
+
+/* ---- admin shell on small screens (phase 2b) ---- */
+/* the collapse shipped desktop-only: below 900px the sidebar becomes an overlay
+   sheet, opened from the content area, so a phone gets a usable dashboard */
+.admin-nav-trigger { display: none; }
+@media (max-width: 899px) {
+  .admin-shell { grid-template-columns: minmax(0, 1fr); }
+  .admin-shell aside { position: fixed; inset: 0 auto 0 0; z-index: var(--z-overlay, 1100); width: min(84vw, 300px); overflow-y: auto; background: var(--color-surface-panel, var(--surface, #f8f8f8)); border-right: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); transform: translateX(-100%); transition: transform var(--motion-duration-sidebar, 180ms) var(--motion-ease-standard, cubic-bezier(.2, 0, 0, 1)); }
+  .admin-shell.is-nav-open aside { transform: none; }
+  .admin-shell.is-nav-open::after { content: ""; position: fixed; inset: 0; z-index: calc(var(--z-overlay, 1100) - 1); background: var(--color-overlay, rgba(25, 25, 25, .32)); }
+  .admin-shell .admin-shell-toggle, .admin-shell.is-collapsed .wordmark { display: flex; }
+  .admin-shell.is-collapsed aside nav a, .admin-shell.is-collapsed aside form button { justify-content: flex-start; gap: var(--space-3, 12px); font-size: var(--font-size-label, 13px); }
+  .admin-nav-trigger { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: var(--space-4, 16px) 0 0 var(--space-4, 16px); padding: 0; font-size: 15px; line-height: 1; background: transparent; border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-control, 5px); cursor: pointer; }
+  .admin-main { padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .admin-shell aside { transition: none; } }

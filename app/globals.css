@@ -1660,3 +1660,27 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
   .fm-auth-main { align-items: flex-start; padding: 32px 18px; }
   .fm-auth-card { padding: 24px; }
 }
+
+/* ---- student dashboard ---- */
+.fm-learn-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.fm-learn-label { margin: 0 0 6px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8F9283; }
+.fm-continue { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 22px; padding: 20px; margin-bottom: 22px; background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; }
+.fm-continue-cover img { width: 100%; height: auto; border-radius: 10px; }
+.fm-continue-body h2 { margin: 0 0 4px; font-family: "Bricolage Grotesque", Georgia, serif; font-size: 24px; letter-spacing: -.03em; }
+.fm-continue-lesson { margin: 0 0 14px; font-size: 15px; color: #6B6A68; }
+.fm-continue-meta { margin: 8px 0 16px; font-size: 13px; color: #8F9283; }
+.fm-bar { height: 8px; overflow: hidden; background: #E9E9E1; border-radius: 999px; }
+.fm-bar span { display: block; height: 100%; background: #9AC400; border-radius: 999px; }
+.fm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 26px; }
+.fm-stat { padding: 18px; background: #FFFFFF; border: 1px solid #E3E3DA; border-radius: 14px; }
+.fm-stat small { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #8F9283; }
+.fm-stat strong { display: block; margin-top: 8px; font-family: "Bricolage Grotesque", Georgia, serif; font-size: 38px; line-height: 1; letter-spacing: -.03em; }
+.fm-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.fm-section-head h2 { margin: 0; font-size: 18px; }
+.fm-ring { position: relative; display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 10px; border-radius: 50%; }
+.fm-ring > span { display: grid; place-items: center; width: 44px; height: 44px; background: #FFFFFF; border-radius: 50%; font-size: 12px; font-weight: 600; }
+.fm-my-courses { margin-bottom: 26px; }
+@media (max-width: 767px) {
+  .fm-continue { grid-template-columns: minmax(0, 1fr); }
+  .fm-learn-head { align-items: flex-start; }
+}

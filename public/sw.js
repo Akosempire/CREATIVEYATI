@@ -3,7 +3,7 @@
 // YouTube or Vimeo lesson lives on someone else's server and cannot be cached,
 // so those lessons simply keep requiring a connection.
 
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `cy-shell-${VERSION}`;
 const MEDIA = `cy-media-${VERSION}`;
 const MEDIA_PREFIX = "/api/learn/media/";
@@ -37,7 +37,10 @@ self.addEventListener("fetch", (event) => {
   // never intercept third-party media: embeds cannot be played offline at all
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith(MEDIA_PREFIX)) { event.respondWith(mediaFirst(request)); return; }
-  if (request.mode === "navigate") event.respondWith(shellFirst(request));
+  // Only the student area is cached. The admin dashboard must never be served
+  // from a stale cache, so its navigations are left completely alone: a cached
+  // dashboard shell after a deploy is worse than no offline support at all.
+  if (request.mode === "navigate" && url.pathname.startsWith("/learn")) event.respondWith(shellFirst(request));
 });
 
 // uploaded lesson media is immutable, so a cache hit is served without hitting
@@ -65,3 +68,4 @@ async function shellFirst(request) {
     throw new Error("offline");
   }
 }
+

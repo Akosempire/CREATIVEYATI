@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import SubmitButton from "@/Components/SubmitButton";
 import { revokeCertificate } from "@/app/admin/actions";
 
 // revoking is destructive and needs a reason, so it gets a real dialog instead
@@ -23,7 +24,7 @@ export default function RevokeCertificateDialog({ id, serial }) {
         <label>Reason<input name="reason" placeholder="Issued in error, chargeback, misconduct…" required /></label>
         <div className="admin-dialog-actions">
           <button className="button button-secondary" type="button" onClick={() => dialog.current?.close()}>Cancel</button>
-          <button className="button" type="submit">Revoke certificate</button>
+          <SubmitButton className="button" pendingLabel="Revoking…">Revoke certificate</SubmitButton>
         </div>
       </form>
     </dialog>

@@ -34,7 +34,7 @@ export default async function LearnPage({ searchParams }) {
         <p className="eyebrow">MY LEARNING</p>
         <h1 className="page-title">Keep going, {firstName}.</h1>
       </div>
-      <Link className="button button-secondary" href="/learn/certificates">My certificates</Link>
+      <div className="fm-learn-actions"><Link className="button button-secondary" href="/courses">Browse more</Link><Link className="button button-secondary" href="/learn/certificates">My certificates</Link></div>
     </div>
     {query.message && <p className="success-note">{query.message}</p>}
     {query.error && <p className="form-error">{query.error}</p>}
@@ -60,7 +60,7 @@ export default async function LearnPage({ searchParams }) {
     </div>
 
     {states.length ? <section className="fm-my-courses">
-      <div className="fm-section-head"><h2>My courses</h2><Link className="inline-link" href="/courses">Browse more</Link></div>
+      <div className="fm-section-head"><h2>My courses</h2></div>
       <div className="learning-grid">{states.map(({ item, percent, nextLesson }) => <article key={item.id}>
         {item.course.coverImageUrl ? <Image src={item.course.coverImageUrl} alt={item.course.title + " cover"} width={640} height={360} sizes="(max-width: 767px) 90vw, 180px" unoptimized /> : null}
         <div>
@@ -79,3 +79,4 @@ export default async function LearnPage({ searchParams }) {
     <section className="purchase-history"><h2>Purchase history</h2>{orders.length ? <div className="admin-list">{orders.map((order) => <div key={order.id}><span>{order.courses?.title || order.reference}<small>{order.reference}</small></span><strong>{formatMoney(order.amount_minor, order.currency)} / {order.payment_status}</strong></div>)}</div> : <p>No purchases yet.</p>}</section>
   </section>;
 }
+

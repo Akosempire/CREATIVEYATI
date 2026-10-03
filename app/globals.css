@@ -1684,3 +1684,8 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
   .fm-continue { grid-template-columns: minmax(0, 1fr); }
   .fm-learn-head { align-items: flex-start; }
 }
+
+/* Browse more and My certificates sit side by side in the dashboard header */
+.fm-learn-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.fm-learn-actions .button { min-height: 44px; display: inline-flex; align-items: center; }
+@media (max-width: 479px) { .fm-learn-actions { width: 100%; } .fm-learn-actions .button { flex: 1 1 auto; justify-content: center; } }

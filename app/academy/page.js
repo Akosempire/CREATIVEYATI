@@ -1,10 +1,11 @@
 import Link from "next/link";
-import PublicHeader from "@/Components/PublicHeader";
+import AcademyHeader from "@/Components/AcademyHeader";
 import PublicFooter from "@/Components/PublicFooter";
 import { formatMoney } from "@/lib/data/courses";
 import { getPublishedCourses } from "@/lib/data/courses";
 import { getSiteContent } from "@/lib/data/site";
 import { getPublicSocialLinks } from "@/lib/data/social";
+import { getStudentUser } from "@/lib/supabase/server";
 
 export const metadata = {
   title: "Academy — learn to make commercials people watch",
@@ -55,10 +56,10 @@ function priceLabel(course) {
 }
 
 export default async function AcademyPage() {
-  const [site, socialLinks, courses] = await Promise.all([getSiteContent(), getPublicSocialLinks(), getPublishedCourses()]);
+  const [site, socialLinks, courses, user] = await Promise.all([getSiteContent(), getPublicSocialLinks(), getPublishedCourses(), getStudentUser()]);
 
-  return <main className="public-page">
-    <PublicHeader site={site} current="/academy" />
+  return <main className="public-page academy-scope">
+    <AcademyHeader site={site} current="/academy" signedIn={Boolean(user)} />
 
     <section className="academy-hero">
       <p className="eyebrow">{copy.eyebrow}</p>
@@ -114,3 +115,5 @@ export default async function AcademyPage() {
     <PublicFooter site={site} socialLinks={socialLinks} />
   </main>;
 }
+
+

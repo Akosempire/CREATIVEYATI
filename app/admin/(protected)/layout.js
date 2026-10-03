@@ -1,13 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import AdminNavigation from "@/Components/AdminNavigation";
-import { AdminIcon } from "@/Components/Icons";
+import AdminShell from "@/Components/AdminShell";
 import { getAdminUser } from "@/lib/supabase/server";
 import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
 
+// Auth only. The shell owns the sidebar, so this stays a server component and
+// every dashboard page underneath is untouched by the redesign.
 export default async function ProtectedAdminLayout({ children }) {
   if (!(await getAdminUser())) redirect("/admin/login");
-  return <div className="admin-shell"><aside><Link className="wordmark" href="/admin">FRAME / MOTION</Link><AdminNavigation /><form action={logout}><button type="submit"><AdminIcon name="logout" />Log out</button></form></aside><section className="admin-main">{children}</section></div>;
+  return <AdminShell logout={logout}>{children}</AdminShell>;
 }

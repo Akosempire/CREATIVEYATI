@@ -1393,3 +1393,20 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 @media (prefers-reduced-motion: reduce) {
   :root { --motion-duration-sidebar: 1ms; --motion-duration-emphasis: 1ms; }
 }
+
+/* ---- admin shell: collapsible grid sidebar (phase 1b) ---- */
+/* the column is the sidebar width, so collapsing animates one property only */
+.admin-shell { display: grid; grid-template-columns: var(--sidebar, var(--layout-sidebar-expanded, 247px)) minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns var(--motion-duration-sidebar, 180ms) var(--motion-ease-standard, cubic-bezier(.2, 0, 0, 1)); }
+.admin-shell.is-collapsed { --sidebar: var(--layout-sidebar-collapsed, 60px); }
+.admin-shell aside { width: auto; min-width: 0; }
+.admin-shell-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2, 8px); }
+.admin-shell-toggle { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; background: transparent; border: var(--border-width-hairline, .5px) solid var(--color-border, var(--border)); border-radius: var(--radius-control, 5px); cursor: pointer; }
+.admin-shell-toggle svg { transition: transform var(--motion-duration-quick, 150ms) var(--motion-ease-out, cubic-bezier(.22, 1, .36, 1)); }
+.admin-shell.is-collapsed .admin-shell-toggle svg { transform: rotate(180deg); }
+.admin-shell.is-collapsed .wordmark { display: none; }
+.admin-shell.is-collapsed .admin-shell-head { justify-content: center; }
+/* collapsed: the label's text collapses to zero while the icon keeps its size,
+   so AdminNavigation needs no markup change and readers still get the label */
+.admin-shell.is-collapsed aside nav a,
+.admin-shell.is-collapsed aside form button { justify-content: center; gap: 0; font-size: 0; }
+@media (prefers-reduced-motion: reduce) { .admin-shell { transition: none; } }

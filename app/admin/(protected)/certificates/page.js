@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Badge, { toneForStatus } from "@/Components/Badge";
+import { EmptyState } from "@/Components/Feedback";
 import RevokeCertificateDialog from "@/Components/RevokeCertificateDialog";
 import { formatCertificateDate, getAdminCertificates } from "@/lib/data/certificates";
 
@@ -24,12 +26,13 @@ export default async function AdminCertificatesPage({ searchParams }) {
         <span>{certificate.studentName || "—"}</span>
         <span>{certificate.courseTitle || "—"}</span>
         <span>{formatCertificateDate(certificate.issuedAt)}</span>
-        <span>{certificate.status}{certificate.status === "revoked" && certificate.revokeReason ? <small>{certificate.revokeReason}</small> : null}</span>
+        <span><Badge tone={toneForStatus(certificate.status)}>{certificate.status}</Badge>{certificate.status === "revoked" && certificate.revokeReason ? <small>{certificate.revokeReason}</small> : null}</span>
         <span>
           <Link className="inline-link" href={certificate.verifyPath} target="_blank" rel="noreferrer">Verify</Link>
           {certificate.status === "valid" ? <RevokeCertificateDialog id={certificate.id} serial={certificate.serial} /> : null}
         </span>
       </div>)}
-    </div> : <p className="empty-state admin-empty-state">No certificates issued yet. They appear here the moment a student finishes every lesson in a course.</p>}
+    </div> : <EmptyState title="No certificates yet">They appear here the moment a student finishes every lesson in a course.</EmptyState>}
   </>;
 }
+

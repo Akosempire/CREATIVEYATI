@@ -1,0 +1,13 @@
+import Link from "next/link";
+import AuthLayout from "@/Components/AuthLayout";
+import SubmitButton from "@/Components/SubmitButton";
+import { resendStudentVerification, verifyStudentEmail } from "@/app/student-actions";
+import { safeNext } from "@/lib/auth/redirect";
+export default async function VerifyEmailPage({searchParams}) {
+ const query=await searchParams,next=safeNext(query.next);
+ return <AuthLayout title="Check your inbox." description="Open the verification link in your email, or enter the code if your email includes one.">
+ {query.error&&<p role="alert" className="form-error">{query.error}</p>}{query.message&&<p role="status" className="success-note">{query.message}</p>}
+ <form className="admin-form fm-auth-form" action={verifyStudentEmail}><input type="hidden" name="next" value={next}/><label>Email<input name="email" type="email" autoComplete="email" required/></label><label>Verification code<input name="token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" minLength={6} maxLength={10} required/></label><SubmitButton pendingLabel="Verifying...">Verify email</SubmitButton></form>
+ <details className="fm-auth-alt"><summary>Need another email?</summary><form className="admin-form" action={resendStudentVerification}><input type="hidden" name="next" value={next}/><label>Email<input name="email" type="email" required/></label><SubmitButton pendingLabel="Sending...">Resend verification</SubmitButton></form></details>
+ <p className="fm-auth-alt"><Link href={"/login?next="+encodeURIComponent(next)}>Back to sign in</Link></p></AuthLayout>;
+}

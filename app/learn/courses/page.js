@@ -1,3 +1,4 @@
+import { courseState } from "@/lib/learning-progress";
 import Link from "next/link";
 import Image from "next/image";
 import { getStudentDashboard } from "@/lib/data/courses";
@@ -7,16 +8,6 @@ import { EmptyState } from "@/Components/Feedback";
 export const metadata = { title: "My courses" };
 export const dynamic = "force-dynamic";
 
-function courseState(item) {
-  const lessons = item.course?.sections.flatMap((section) => section.lessons) || [];
-  const completed = item.progress.filter((entry) => entry.completed).length;
-  const percent = lessons.length ? Math.round(completed / lessons.length * 100) : 0;
-  const recentProgress = [...item.progress].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0];
-  const recentLesson = lessons.find((lesson) => lesson.id === recentProgress?.lesson_id);
-  const nextLesson = recentLesson || lessons.find((lesson) => !item.progress.some((entry) => entry.lesson_id === lesson.id && entry.completed)) || lessons[0];
-  const resources = item.course?.sections.flatMap((section) => section.lessons.flatMap((lesson) => lesson.resources.map((resource) => ({ ...resource, lessonTitle: lesson.title })))) || [];
-  return { lessons, completed, percent, recentProgress, recentLesson, nextLesson, resources };
-}
 
 const TABS = [
   { value: "", label: "All" },

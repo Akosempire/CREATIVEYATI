@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function PaymentButton({ courseId }) {
+export default function PaymentButton({ courseId, isFree = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   async function pay(event) {
@@ -17,5 +17,5 @@ export default function PaymentButton({ courseId }) {
       window.location.assign(result.authorizationUrl || result.redirectUrl);
     } catch (paymentError) { setLoading(false); setError(paymentError.message); }
   }
-  return <><button className="button" type="button" disabled={loading} onClick={pay}>{loading ? "Opening secure checkout…" : "Continue to secure payment"}</button>{error && <p className="form-error" role="alert">{error}</p>}</>;
+  return <><button className="button" type="button" disabled={loading} onClick={pay}>{loading ? "Opening secure checkout…" : isFree ? "Enrol for free" : "Continue to secure payment"}</button>{error && <p className="form-error" role="alert">{error}</p>}</>;
 }

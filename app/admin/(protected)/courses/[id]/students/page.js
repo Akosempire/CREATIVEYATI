@@ -1,4 +1,4 @@
-import Link from "next/link";
+import CourseWorkflowNav from "@/Components/CourseWorkflowNav";
 import { notFound } from "next/navigation";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getAdminCourse } from "@/lib/data/courses";
@@ -16,7 +16,7 @@ export default async function CourseStudentsPage({ params, searchParams }) {
   const users = new Map((usersResult.data?.users || []).map((user) => [user.id, user]));
 
   return <>
-    <div className="admin-title"><p>COURSES</p><h1>{course.title} students</h1><div className="admin-subnav"><Link href={`/admin/courses/${id}/edit`}>Course details</Link><Link href={`/admin/courses/${id}/curriculum`}>Curriculum</Link></div></div>
+    <div className="admin-title"><p>COURSES</p><h1>{course.title} students</h1><CourseWorkflowNav courseId={id} course={course} active="students" /></div>
     {query.saved === "granted" && <p className="success-note">Course access granted.</p>}
     {query.saved === "revoked" && <p className="success-note">Course access revoked.</p>}
     {query.error && <p className="form-error">{query.error}</p>}

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingIncludes: { "/api/**": ["./public/fonts/*.ttf"] },
   turbopack: { root: process.cwd() },
   images: {
     remotePatterns: [

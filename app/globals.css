@@ -873,6 +873,16 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .admin-subnav { margin-top:14px; }
 .admin-subnav a { color:var(--muted-foreground); }
 .reorder-projects,.curriculum-reorder { margin:24px 0 38px; }
+.portfolio-order-help { color:var(--muted); font-size:.8rem; line-height:1.6; }
+.reorder-projects .reorder-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px; border-radius:12px; }
+.reorder-projects .reorder-list li { flex-wrap:wrap; }
+.reorder-projects .reorder-list li>span { flex-wrap:wrap; overflow-wrap:anywhere; }
+.reorder-projects .reorder-list li>div { flex-wrap:wrap; align-items:center; }
+.reorder-projects .reorder-list li.is-dragging { opacity:.5; }
+.reorder-projects button:disabled,.portfolio-position select:disabled { opacity:.45; cursor:not-allowed; }
+.portfolio-position { display:flex; align-items:center; gap:8px; font-size:.75rem; color:var(--muted); }
+.portfolio-position select { min-height:36px; min-width:60px; padding:4px 8px; color:var(--foreground); background:var(--surface); border:1px solid var(--border); }
+.reorder-projects :is(button,select):focus-visible { outline:2px solid currentColor; outline-offset:3px; }
 .reorder-projects>button,.reorder-toolbar button,.reorder-list button,.curriculum-reorder button,.social-order-actions button { min-height:34px; padding:0 10px; color:var(--foreground); background:var(--surface); border:1px solid var(--border); cursor:pointer; }
 .reorder-toolbar { padding:14px; border:1px solid var(--border); }
 .reorder-toolbar span { color:var(--muted); font-size:.75rem; }
@@ -1701,13 +1711,13 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
    child of the grid it then took the second column and pushed .admin-main onto a
    new row, so the content rendered below the sidebar. Mobile-only controls are now
    suppressed explicitly on desktop rather than relying on that base rule. */
-@media (min-width: 901px) {
-  .admin-shell { display: grid !important; grid-template-columns: 260px minmax(0, 1fr) !important; align-items: start; min-height: 100vh; }
+@media (min-width: 900px) {
+  .admin-shell { display: grid !important; grid-template-columns: var(--sidebar, var(--layout-sidebar-expanded, 247px)) minmax(0, 1fr) !important; align-items: start; min-height: 100vh; }
   .admin-shell aside { position: sticky !important; top: 0; width: auto !important; height: 100vh; overflow-y: auto; overscroll-behavior: contain; }
   .admin-shell .admin-main, .admin-shell .admin-shell-main { grid-column: 2; min-width: 0; }
-  .admin-nav-trigger, .admin-nav-close, .admin-shell-toggle, .admin-nav-scrim { display: none !important; }
+  .admin-nav-trigger, .admin-nav-close, .admin-nav-scrim { display: none !important; }
 }
-@media (max-width: 900px) {
+@media (max-width: 899px) {
   .admin-shell { grid-template-columns: minmax(0, 1fr) !important; }
   .admin-shell .admin-main { grid-column: 1; }
   /* the drawer needs an explicit box now that the desktop rule sets a height */

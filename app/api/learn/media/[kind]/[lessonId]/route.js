@@ -16,7 +16,7 @@ export async function GET(request, { params }) {
   let authorised = Boolean(admin) || publicPreview;
   if (!authorised && user) {
     const { data: enrolment } = await service.from("enrolments").select("id").eq("student_id", user.id).eq("course_id", lesson.course_id).eq("active", true).maybeSingle();
-    authorised = Boolean(enrolment);
+    authorised = Boolean(enrolment) && lesson.status === "published";
   }
   if (!authorised) return Response.json({ error: user ? "Course access is required." : "Sign in to access this lesson." }, { status: user ? 403 : 401 });
   const storageKey = kind === "video" ? lesson.storage_key : lesson.poster_storage_key;

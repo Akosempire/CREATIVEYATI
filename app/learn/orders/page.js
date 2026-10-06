@@ -9,12 +9,12 @@ export const dynamic = "force-dynamic";
 export default async function StudentOrdersPage() {
   const { orders } = await getStudentDashboard();
   return <section className="public-note">
-    <div className="admin-title"><p>MY LEARNING</p><h1>Orders</h1><p className="admin-lede">Every course purchase on your account, with the reference to quote if you need help.</p></div>
+    <div className="admin-title"><p>MY LEARNING</p><h1>Orders & receipts</h1><p className="admin-lede">Your purchases, payment status and downloadable receipts.</p></div>
     {orders.length ? <div className="admin-table">
       <div><b>Course</b><b>Reference</b><b>Amount</b><b>Status</b><b>Date</b></div>
       {orders.map((order) => <div key={order.id}>
         <span>{order.courses?.title || "Course"}</span>
-        <span>{order.reference}</span>
+        <span>{order.reference}{order.payment_status === "successful" && Number(order.amount_minor) > 0 && <small><a className="inline-link" href={"/api/learn/receipts/" + order.id}>Download receipt PDF</a></small>}</span>
         <strong>{formatMoney(order.amount_minor, order.currency)}</strong>
         <span><Badge tone={toneForStatus(order.payment_status)}>{order.payment_status}</Badge></span>
         <span>{order.created_at ? new Date(order.created_at).toLocaleDateString("en-NG", { dateStyle: "medium" }) : "-"}</span>

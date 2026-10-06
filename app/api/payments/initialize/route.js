@@ -5,6 +5,7 @@ import { sendCourseConfirmation } from "@/lib/email/delivery";
 export async function POST(request) {
   const user = await getStudentUser(); const service = createSupabaseServiceClient();
   if (!user) return Response.json({ error: "Sign in before checking out." }, { status: 401 });
+  if (!user.email_confirmed_at) return Response.json({ error: "Verify your email before enrolling." }, { status: 403 });
   if (!service) return Response.json({ error: "Course payments are not configured." }, { status: 503 });
   const body = await request.json().catch(() => ({})); const courseId = String(body.courseId || ""); const couponCode = String(body.couponCode || "").trim().toUpperCase();
   const { data: course } = await service.from("courses").select("*").eq("id", courseId).in("status", ["published", "scheduled"]).is("deleted_at", null).maybeSingle();

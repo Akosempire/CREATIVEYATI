@@ -4,16 +4,16 @@ import SubmitButton from "@/Components/SubmitButton";
 import { EmptyState } from "@/Components/Feedback";
 import { markInvoicePaid, saveInvoice, updateInvoiceStatus } from "@/app/admin/actions";
 import { formatMoney } from "@/lib/data/courses";
-import { financeSummary, formatInvoiceDate, getAdminInvoices, isOverdue } from "@/lib/data/invoices";
+import { formatInvoiceDate, getAdminInvoices, isOverdue } from "@/lib/data/invoices";
+import { getAdminFinanceSummary } from "@/lib/data/finance";
 
 export const metadata = { title: "Quotations and invoices" };
 
-const STATUSES = ["draft", "sent", "accepted", "declined", "paid", "void"];
+const STATUSES = ["draft", "sent", "accepted", "declined", "void"];
 
 export default async function AdminInvoicesPage({ searchParams }) {
-  const [invoices, query] = await Promise.all([getAdminInvoices(), searchParams]);
-  const summary = financeSummary(invoices);
-  const currency = invoices[0]?.currency || "NGN";
+  const [invoices, query, finance] = await Promise.all([getAdminInvoices(), searchParams, getAdminFinanceSummary()]);
+  const totalCount = finance.invoices.reduce((total, row) => total + Number(row.document_count), 0);
 
   return <>
     <div className="admin-title">
@@ -25,7 +25,7 @@ export default async function AdminInvoicesPage({ searchParams }) {
     {query.paid && <p className="success-note">Payment recorded and the receipt was issued.</p>}
     {query.error && <p className="form-error">{query.error}</p>}
 
-    <section className="admin-section-heading"><p>POSITION</p><h2>{formatMoney(summary.collectedMinor, currency)} collected · {formatMoney(summary.outstandingMinor, currency)} outstanding · {summary.overdueCount} overdue</h2></section>
+    <section className="admin-section-heading"><p>POSITION · ALL DOCUMENTS</p>{finance.invoices.map(summary => <h2 key={summary.currency}>{formatMoney(summary.collected_minor, summary.currency)} collected · {formatMoney(summary.outstanding_minor, summary.currency)} outstanding · {summary.overdue_count} overdue</h2>)}<p>Outstanding includes sent and accepted invoices. Drafts, quotations, declined and void documents are excluded.</p></section>
 
     <details className="student-profile"><summary>New quotation or invoice</summary>
       <form className="admin-form" action={saveInvoice}>
@@ -43,7 +43,7 @@ export default async function AdminInvoicesPage({ searchParams }) {
       </form>
     </details>
 
-    <section className="admin-section-heading"><p>DOCUMENTS</p><h2>{invoices.length} on file</h2></section>
+    <section className="admin-section-heading"><p>DOCUMENTS</p><h2>{totalCount} on file</h2>{totalCount > invoices.length && <p>Showing the latest {invoices.length} documents. Financial totals include all documents.</p>}</section>
     {invoices.length ? <div className="admin-table">
       <div><b>Number</b><b>Client</b><b>Total</b><b>Dates</b><b>Status</b><b>Actions</b></div>
       {invoices.map((invoice) => <div key={invoice.id}>
@@ -54,15 +54,16 @@ export default async function AdminInvoicesPage({ searchParams }) {
         <span>{invoice.status}{isOverdue(invoice) ? " · overdue" : ""}{invoice.acceptedName ? <small>Accepted by {invoice.acceptedName}</small> : null}</span>
         <span>
           <Link className="inline-link" href={`/q/${invoice.accessToken}`} target="_blank" rel="noreferrer">Client link</Link>
-          <details><summary className="inline-link">Status</summary>
+          <a className="inline-link" href={`/api/invoices/${invoice.accessToken}`}>{invoice.status === "paid" ? "Receipt PDF" : "Document PDF"}</a>
+          {invoice.status !== "paid" && <details><summary className="inline-link">Status</summary>
             <form className="admin-form" action={updateInvoiceStatus}>
               <input type="hidden" name="id" value={invoice.id} />
               <label>Status<select name="status" defaultValue={invoice.status}>{STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
               <label>Accepted by<input name="acceptedName" defaultValue={invoice.acceptedName} /></label>
               <button className="button button-secondary" type="submit">Save status</button>
             </form>
-          </details>
-          {invoice.status !== "paid" && <details><summary className="inline-link">Record payment</summary>
+          </details>}
+          {!["paid", "void", "declined"].includes(invoice.status) && <details><summary className="inline-link">Record payment</summary>
             <form className="admin-form" action={markInvoicePaid}>
               <input type="hidden" name="id" value={invoice.id} />
               <label>Channel<select name="channel" defaultValue="Bank transfer"><option value="Bank transfer">Bank transfer</option><option value="Cash">Cash</option><option value="Card terminal">Card terminal</option><option value="Other">Other</option></select></label>

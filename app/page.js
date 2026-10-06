@@ -8,6 +8,12 @@ import { getCourseSettings } from "@/lib/data/settings";
 import { getPublishedCourses } from "@/lib/data/courses";
 import { getPublicSocialLinks } from "@/lib/data/social";
 
+export const metadata = {
+  title: { absolute: "Idayat Ibrahim | AI Video Creator, Video Editor & AI Tutor in Nigeria" },
+  description: "Idayat Ibrahim is an AI Video Creator, AI Video Editor, Visual Storyteller and AI Tutor based in Nigeria, creating AI commercials, product ads, UGC-style videos and branded content for clients worldwide.",
+  alternates: { canonical: "https://aivideocreator.cv/" },
+};
+
 // The home page leads with the studio hero. The WebGL carousel is deliberately
 // not mounted here; its engine is untouched and still available where it is used.
 //
@@ -59,11 +65,11 @@ export default async function Home() {
       <PublicHeader site={site} current="/" />
 
       <section className="lh-hero">
-        <p className="lh-badge">Films, ads and product stories</p>
+        <p className="lh-badge">AI VIDEO CREATOR · VIDEO EDITOR · AI TUTOR</p>
         <h1 className="lh-headline">
           {heading[0]}<span className="lh-strike">{site.highlightWord}</span>{heading.slice(1).join(site.highlightWord)}
         </h1>
-        <p className="lh-lede">{site.heroCopy}</p>
+        <p className="lh-lede">Idayat Ibrahim is an AI video creator and editor based in Nigeria, creating AI commercials, product films, UGC-style content and branded campaigns for clients worldwide.</p>
         <div className="lh-actions">
           <Link className="lh-btn lh-btn-primary" href="/contact">{site.ctaLabel || "Start a project"}</Link>
           <Link className="lh-btn lh-btn-secondary" href="/work">See the work</Link>

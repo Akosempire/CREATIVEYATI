@@ -6,7 +6,7 @@ import { createSupabaseServerClient, createSupabaseServiceClient, getAdminUser }
 import { bachsSettingsSchema, contactSettingsSchema, emailSettingsSchema, seoSettingsSchema, videoSchema } from "@/lib/validation";
 import { getVideoSource } from "@/lib/video-source";
 import { getSiteContent } from "@/lib/data/site";
-import { clearDirectAdminSession, createDirectAdminSession, hasDirectAdminAuth, verifyDirectAdminCredentials } from "@/lib/admin-session";
+import { clearDirectAdminSession } from "@/lib/admin-session";
 import { getStoredBachsSettings, getStoredEmailSettings } from "@/lib/data/settings";
 import { canEncryptSecrets, canEncryptSmtp, encryptSecretSettings, encryptSmtpSettings } from "@/lib/email/crypto";
 import { sendCourseConfirmation, sendEnquiryNotification, sendSettingsTestEmail } from "@/lib/email/delivery";
@@ -50,10 +50,11 @@ export async function saveInvoice(formData) {
 }
 export async function updateInvoiceStatus(formData) {
   await admin(); const supabase = await createSupabaseServerClient(); const id = String(formData.get("id") || ""); const status = String(formData.get("status") || "");
-  if (!id || !["draft", "sent", "accepted", "declined", "paid", "void"].includes(status)) redirect("/admin/invoices?error=Unknown+status");
+  if (!id || !["draft", "sent", "accepted", "declined", "void"].includes(status)) redirect("/admin/invoices?error=Unknown+status");
   const now = new Date().toISOString(); const update = { status, updated_at: now };
   if (status === "accepted") { update.accepted_at = now; update.accepted_name = String(formData.get("acceptedName") || "").trim() || "Recorded by admin"; }
-  if (status === "paid") update.paid_at = now;
+  const { data: existing } = await supabase.from("invoices").select("status").eq("id", id).maybeSingle();
+  if (!existing || existing.status === "paid") redirect("/admin/invoices?error=Settled+documents+cannot+be+changed");
   const { error } = await supabase.from("invoices").update(update).eq("id", id);
   if (error) redirect(`/admin/invoices?error=${encodeURIComponent("That status could not be saved.")}`);
   revalidatePath("/admin/invoices"); redirect("/admin/invoices?saved=1");
@@ -61,19 +62,27 @@ export async function updateInvoiceStatus(formData) {
 // most client invoices settle by transfer, so recording one produces the same
 // receipt the gateway webhook would have produced
 export async function markInvoicePaid(formData) {
-  await admin(); const supabase = await createSupabaseServerClient(); const id = String(formData.get("id") || "");
-  const channel = String(formData.get("channel") || "Bank transfer").trim(); const reference = String(formData.get("reference") || "").trim();
+  await admin();
+  const supabase = createSupabaseServiceClient(), id = String(formData.get("id") || "");
+  const channel = String(formData.get("channel") || "Bank transfer").trim(), reference = String(formData.get("reference") || "").trim();
   const { data: invoice } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
   if (!invoice) redirect("/admin/invoices?error=Document+not+found");
-  if (invoice.status === "paid") redirect("/admin/invoices?error=That+document+is+already+settled");
-  const now = new Date().toISOString();
-  const { error } = await supabase.from("invoices").update({ status: "paid", paid_at: now, payment_channel: channel, payment_reference: reference || null, updated_at: now }).eq("id", invoice.id);
-  if (error) redirect(`/admin/invoices?error=${encodeURIComponent("The payment could not be recorded.")}`);
-  await issueInvoiceReceipt(supabase, invoice, { channel, reference, amountMinor: Number(invoice.total_minor) });
-  revalidatePath("/admin/invoices"); if (invoice.access_token) revalidatePath(`/q/${invoice.access_token}`);
-  await recordActivity({ title: "Payment recorded", description: `${channel} for ${invoice.number}`, href: "/admin/invoices", entity: "invoice", entityId: invoice.id }); redirect("/admin/invoices?paid=1");
+  try { await issueInvoiceReceipt(supabase, invoice, { channel, reference, amountMinor: Number(invoice.total_minor) }); }
+  catch { redirect("/admin/invoices?error=Payment+and+receipt+could+not+be+saved.+Please+try+again."); }
+  revalidatePath("/admin/invoices"); revalidatePath("/q/" + invoice.access_token);
+  await recordActivity({ title: "Payment recorded", description: channel + " for " + invoice.number, href: "/admin/invoices", entity: "invoice", entityId: id });
+  redirect("/admin/invoices?paid=1");
 }
-export async function login(formData) { const email = String(formData.get("email") || ""); const password = String(formData.get("password") || ""); if (hasDirectAdminAuth()) { if (!verifyDirectAdminCredentials(email, password)) redirect("/admin/login?error=Invalid+email+or+password"); await createDirectAdminSession(email); redirect("/admin"); } const supabase = await createSupabaseServerClient(); if (!supabase) return redirect("/admin/login?error=Admin+sign-in+is+not+configured"); const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) redirect("/admin/login?error=Invalid+email+or+password"); redirect("/admin"); }
+
+export async function login(formData) {
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) redirect("/admin/login?error=Sign-in+is+unavailable");
+  const { error } = await supabase.auth.signInWithPassword({ email: String(formData.get("email") || "").trim(), password: String(formData.get("password") || "") });
+  if (error) redirect("/admin/login?error=Invalid+email+or+password");
+  const { getAdminIdentity } = await import("@/lib/supabase/server");
+  if (!await getAdminIdentity()) { await supabase.auth.signOut(); redirect("/admin/login?error=Administrator+access+is+required"); }
+  redirect("/admin/mfa");
+}
 export async function logout() { await clearDirectAdminSession(); const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/admin/login"); }
 function jsonObject(value) { try { const parsed = JSON.parse(value || "{}"); return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}; } catch { return {}; } }
 function storageKeys(value) { try { const parsed = JSON.parse(value || "[]"); return Array.isArray(parsed) ? parsed.filter((key) => typeof key === "string" && /^[A-Za-z0-9/_-]+\.webp$/.test(key) && !key.includes("..")) : []; } catch { return []; } }
@@ -177,7 +186,7 @@ export async function saveSiteContent(formData) { await admin(); const value = {
 
 export async function reorderVideos(videoIds) {
   await admin();
-  if (!Array.isArray(videoIds) || !videoIds.length || videoIds.length > 500 || videoIds.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) return { ok: false, error: "A complete valid project order is required." };
+  if (!Array.isArray(videoIds) || !videoIds.length || videoIds.length > 500 || new Set(videoIds).size !== videoIds.length || videoIds.some((id) => typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return { ok: false, error: "A complete valid project order is required." };
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("reorder_videos", { video_ids: videoIds });
   if (error) return { ok: false, error: "The order could not be saved. Apply the latest database migration and try again." };
@@ -478,5 +487,12 @@ export async function grantCourseAccess(formData) {
   await admin(); const service = createSupabaseServiceClient(); const email = String(formData.get("email") || "").trim().toLowerCase(); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/students`; const { data, error: usersError } = await service.auth.admin.listUsers({ page: 1, perPage: 1000 }); if (usersError) redirect(`${destination}?error=${encodeURIComponent("Student accounts could not be loaded.")}`); const user = data?.users?.find((item) => item.email?.toLowerCase() === email); if (!user) redirect(`${destination}?error=${encodeURIComponent("No student account uses that email.")}`); const { error } = await service.from("enrolments").upsert({ student_id: user.id, course_id: courseId, access_source: "manual", active: true, revoked_at: null }, { onConflict: "student_id,course_id" }); if (error) redirect(`${destination}?error=${encodeURIComponent("Course access could not be granted.")}`); revalidatePath(destination); redirect(`${destination}?saved=granted`);
 }
 export async function revokeCourseAccess(formData) { const actor = await admin(); const service = createSupabaseServiceClient(); const id = String(formData.get("id") || ""); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/students`; const { error } = await service.from("enrolments").update({ active: false, revoked_at: new Date().toISOString(), granted_by: actor.id === "direct-admin" ? null : actor.id }).eq("id", id); if (error) redirect(`${destination}?error=${encodeURIComponent("Course access could not be revoked.")}`); revalidatePath(destination); redirect(`${destination}?saved=revoked`); }
-
-
+export async function saveDocumentSettings(formData) {
+  await admin();
+  const keys = ["businessName", "academyName", "email", "phone", "address", "paymentInstructions", "signerName", "signerTitle"];
+  const value = Object.fromEntries(keys.map(key => [key, String(formData.get(key) || "").trim().slice(0, key === "paymentInstructions" ? 500 : 150)]));
+  if (!value.businessName || !value.academyName) redirect("/admin/settings/documents?error=Enter+the+business+and+academy+names");
+  await saveSetting("documents", value);
+  revalidatePath("/", "layout");
+  redirect("/admin/settings/documents?saved=1");
+}

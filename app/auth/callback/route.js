@@ -21,7 +21,14 @@ export async function GET(request) {
   const recoveryRequested = url.searchParams.get("type") === "recovery";
   const recoveryToken = Boolean(tokenHash && recoveryRequested);
   const recoveryDestination = new URL(next, url.origin).pathname === "/reset-password/update";
-  if (code || recoveryToken) {
+  // Reading an email link must not consume its one-time recovery token.
+  if (recoveryToken) {
+    const destination = new URL("/reset-password/confirm", url.origin);
+    destination.searchParams.set("token_hash", tokenHash);
+    destination.searchParams.set("next", recoveryDestination ? new URL(next, url.origin).searchParams.get("next") || "/learn" : next);
+    return NextResponse.redirect(destination, { headers: { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } });
+  }
+  if (code) {
     const supabase = await createSupabaseAuthClient();
     if (!supabase) return NextResponse.redirect(new URL("/login?error=Sign-in+is+unavailable", url.origin));
     const { data, error } = recoveryToken

@@ -7,6 +7,7 @@ for(const [path,method,forward] of [
  ['/reset-password/update?code=valid','GET',true],
  ['/?token_hash=valid&type=recovery','GET',true],
  ['/auth/callback?code=valid','GET',false],
+ ['/reset-password/confirm?token_hash=valid&type=recovery','GET',false],
  ['/api/payments?code=valid','GET',false],
  ['/courses?code=discount','GET',false],
  ['/?code=','GET',false],
@@ -17,4 +18,4 @@ for(const [path,method,forward] of [
  assert.equal(!!result.redirect,forward,path);
  if(forward)assert.equal(new URL(result.redirect).pathname,'/auth/callback');
 }
-console.log('Passed 9 recovery forwarding cases');
+console.log('Passed 10 recovery forwarding cases');

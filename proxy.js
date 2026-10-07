@@ -6,7 +6,7 @@ function recoveryParams(request) {
   if (request.method !== "GET") return null;
   const requestUrl = new URL(request.url);
   const path = requestUrl.pathname.replace(/\/+$/, "") || "/";
-  if (path === "/auth/callback" || path.startsWith("/api/")) return null;
+  if (path === "/auth/callback" || path === "/reset-password/confirm" || path.startsWith("/api/")) return null;
   const params = requestUrl.searchParams;
   const recovery = params.get("token_hash") && params.get("type") === "recovery";
   const authLanding = ["/", "/login", "/admin/login", "/reset-password", "/reset-password/update"].includes(path);

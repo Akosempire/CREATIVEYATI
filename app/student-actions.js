@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseAuthClient, createSupabaseServiceClient, getStudentUser } from "@/lib/supabase/server";
 import { issueCertificateFor } from "@/lib/data/certificates";
 import { safeNext } from "@/lib/auth/redirect";
-import { canResetPassword, clearPasswordRecovery } from "@/lib/auth/recovery";
+import { canResetPassword, clearPasswordRecovery, grantPasswordRecovery } from "@/lib/auth/recovery";
 import { ensureStudentProfile } from "@/lib/auth/student-profile";
 
 export async function resendStudentVerification(formData) {
@@ -79,6 +79,20 @@ export async function requestPasswordReset(formData) {
   redirect("/reset-password?next=" + encodeURIComponent(next) + "&message=If+that+account+exists%2C+a+reset+link+has+been+sent.");
 }
 
+export async function confirmPasswordRecovery(formData) {
+  const supabase = await createSupabaseAuthClient();
+  const tokenHash = String(formData.get("token_hash") || "");
+  const next = safeNext(formData.get("next"));
+  if (!supabase || !tokenHash || tokenHash.length > 2048) redirect("/reset-password?error=Open+a+valid+reset+email+to+continue.");
+  const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+  if (error || !data?.user) {
+    console.error("Password recovery verification failed", { code: error?.code, status: error?.status });
+    redirect("/reset-password?error=This+reset+link+is+invalid+or+expired.+Request+a+new+email+and+use+only+the+latest+link.");
+  }
+  await grantPasswordRecovery(data.user.id);
+  redirect("/reset-password/update?next=" + encodeURIComponent(next));
+}
+
 export async function updateStudentPassword(formData) {
   const supabase = await createSupabaseAuthClient();
   const password = String(formData.get("password") || "");
@@ -86,8 +100,32 @@ export async function updateStudentPassword(formData) {
   const user = await getStudentUser();
   if (!supabase || !user || !await canResetPassword(user.id)) redirect("/reset-password?message=Open+a+fresh+reset+email+first");
   if (password.length < 12 || password !== String(formData.get("confirmPassword") || "")) redirect(`/reset-password/update?next=${encodeURIComponent(next)}&error=Use+matching+passwords+of+at+least+12+characters`);
+  const fail = message => redirect("/reset-password/update?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(message));
+  const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (assuranceError) fail("Unable to check account security. Please try again.");
+  if (assurance?.nextLevel === "aal2" && assurance.currentLevel !== "aal2") {
+    const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
+    if (factorError) fail("Unable to load your authenticator. Please try again.");
+    const factor = factors?.totp?.find(item => item.status === "verified" && item.id === String(formData.get("factorId") || ""));
+    const code = String(formData.get("authenticatorCode") || "").trim();
+    if (!factor || !/^[0-9]{6}$/.test(code)) fail("Enter the six-digit code from your authenticator app.");
+    const { error: mfaError } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+    if (mfaError) fail("The authenticator code is invalid or expired. Enter the latest code.");
+  }
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) redirect(`/reset-password/update?next=${encodeURIComponent(next)}&error=Password+could+not+be+updated.+Request+a+new+reset+link.`);
+  if (error) {
+    console.error("Password update failed", { code: error.code, status: error.status });
+    const messages = {
+      same_password: "Choose a new password different from your current password.",
+      weak_password: "Choose a stronger password with upper and lowercase letters, numbers and symbols. Avoid common or compromised passwords.",
+      insufficient_aal: "Verify your authenticator code before changing your password.",
+      reauthentication_needed: "Your session needs fresh verification. Request a new reset email.",
+      session_not_found: "Your reset session has ended. Request a new reset email.",
+      session_expired: "Your reset session has expired. Request a new reset email.",
+      over_request_rate_limit: "Too many attempts. Please wait a moment before trying again.",
+    };
+    fail(messages[error.code] || "Your password could not be updated. Please try again shortly.");
+  }
   await supabase.auth.signOut({ scope: "others" });
   await clearPasswordRecovery();
   redirect("/reset-password/success?next=" + encodeURIComponent(next));

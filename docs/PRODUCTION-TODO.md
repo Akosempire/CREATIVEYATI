@@ -1,3 +1,18 @@
+## 7 October 2026 ? dashboard integration
+
+The redesigned layouts now render on the authenticated `/admin` and `/learn` routes through `AdminWorkspace` and `StudentWorkspace`. The `/design-review` samples remain development-only and are not the production entry points.
+
+- Admin: real course/student/certificate counts, successful course-payment charts separated by currency, student growth, completion metrics, course spotlight, and actual action links.
+- Student: real progress, next lessons, certificates, completion-day streaks, learning chart, and weekly goals saved to the signed-in account metadata.
+- New `/admin/students` directory supports name search and pagination; enrolment management remains on each course's Students page.
+- Totals are paginated past database row limits. Data failures surface through the existing error boundaries rather than returning sample numbers.
+- Browser fixture checks: populated and empty dashboards at 390px and 1440px, chart controls, lesson links, and no horizontal overflow or browser exceptions.
+- Automated checks: Lagos calendar boundaries, minor-unit conversion, streaks, duplicate/draft lesson handling, pagination over 1,000 records, and administrator guard.
+- Outstanding: authenticated production walkthrough using actual admin MFA and student accounts, including saving a weekly goal and comparing production chart totals against orders. Browser fixtures do not prove live RLS or record completeness.
+- No database migration required for this integration. Existing tables, RLS, and Auth user metadata are used.
+
+---
+
 # Dashboard production TODO
 
 ## Current implementation — 2026-10-05

@@ -103,6 +103,18 @@ export async function updateStudentProfile(formData) {
   revalidatePath("/learn", "layout"); redirect("/learn/profile?message=Profile+updated");
 }
 
+export async function updateWeeklyGoal(formData) {
+  const user = await getStudentUser();
+  if (!user) redirect("/login?next=/learn");
+  const goal = Number(formData.get("weeklyGoal"));
+  if (![3, 5, 7].includes(goal)) redirect("/learn?error=Choose+a+weekly+goal+of+3%2C+5+or+7+lessons.");
+  const supabase = await createSupabaseAuthClient();
+  const { error } = await supabase.auth.updateUser({ data: { weekly_learning_goal: goal } });
+  if (error) redirect("/learn?error=Your+weekly+goal+could+not+be+saved.+Please+try+again.");
+  revalidatePath("/learn");
+  redirect("/learn?message=Your+weekly+goal+has+been+saved.");
+}
+
 export async function markLessonComplete(formData) {
   const user = await getStudentUser(); const service = createSupabaseServiceClient();
   const courseId = String(formData.get("courseId") || ""); const lessonId = String(formData.get("lessonId") || ""); const courseSlug = String(formData.get("courseSlug") || "");

@@ -7,12 +7,22 @@ import StudentWorkspacePreview from "@/Components/StudentWorkspacePreview";
 import InvoiceDocument from "@/Components/InvoiceDocument";
 import CertificateDocument from "@/Components/CertificateDocument";
 import { documentDefaults } from "@/lib/documents/brand";
+import AdminWorkspace from "@/Components/AdminWorkspace";
+import StudentWorkspace from "@/Components/StudentWorkspace";
+import { dashboardFixtures } from "@/scripts/dashboard-fixtures";
 
 export const dynamic = "force-dynamic";
 export default async function DesignReview({searchParams}) {
   if (process.env.NODE_ENV !== "development") notFound();
   const { view = "documents" } = await searchParams;
   async function noop() { "use server"; }
+  if (view.startsWith("live-admin") || view.startsWith("live-student")) {
+    const fixture = dashboardFixtures(view.endsWith("empty"));
+    const notice = <p role="note">Development fixture · sample records for layout testing only.</p>;
+    return view.startsWith("live-admin")
+      ? <AdminShell logout={noop}>{notice}<AdminWorkspace data={fixture.admin} paymentsReady/></AdminShell>
+      : <StudentShell site={{creatorName:"AI VIDEO CREATOR"}} user={{email:"sample@example.com"}} signOut={noop}>{notice}<StudentWorkspace dashboard={fixture.student} certificates={[]} query={{}} saveGoal={noop}/></StudentShell>;
+  }
   const navigation = <p className="no-print"><Link href="/design-review">Documents</Link> / <Link href="/design-review?view=admin">Admin shell</Link> / <Link href="/design-review?view=student">Student shell</Link></p>;
   if(view === "admin") return <AdminShell logout={noop}><AdminWorkspacePreview /></AdminShell>;
   if(view === "student") return <StudentShell site={{creatorName:"AI VIDEO CREATOR"}} user={{email:"sample@example.com"}} signOut={noop}><StudentWorkspacePreview /></StudentShell>;

@@ -14,7 +14,7 @@ export default function PasswordFields({ label = "Password" }) {
     const second = confirmation.current.value;
     const mismatch = second && first !== second;
     confirmation.current.setCustomValidity(mismatch ? "Your passwords do not match." : "");
-    setFeedback(second ? (mismatch ? "Your passwords do not match yet." : "Passwords match.") : "");
+    setFeedback(second && !mismatch ? "Passwords match." : "");
   }
 
   return <div className="password-fields">

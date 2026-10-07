@@ -106,7 +106,11 @@ export default function ToastHost() {
     let validationQueued = false;
     const invalid = event => {
       const field = event.target;
-      if (!field.closest?.(".fm-auth, .dashboard-page") || validationQueued) return;
+      if (!field.closest?.(".fm-auth, .dashboard-page")) return;
+      // Auth errors have one visible message; retain focus on the invalid field.
+      if (field.closest(".fm-auth")) event.preventDefault();
+      if (validationQueued) return;
+      field.focus();
       validationQueued = true;
       const timer = setTimeout(() => { validationQueued = false; timers.delete(timer); }, 0);
       timers.add(timer);

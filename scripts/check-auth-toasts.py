@@ -14,7 +14,8 @@ with sync_playwright() as p:
   # A new server render must announce the same error again on the same DOM node.
   page.locator('.fm-auth').evaluate("el=>el.dataset.toastCycle=crypto.randomUUID()")
   toast.get_by_text(message,exact=True).wait_for()
-  assert page.locator('.fm-auth .form-error').inner_text()==message
+  assert page.locator('.fm-auth .form-error').count()==0
+  assert page.locator('.fm-auth [data-toast-kind=error]').is_hidden()
   print('PASS error and repeated error',path,flush=True)
  page.goto(base+'/login',wait_until='commit')
  page.get_by_role('button',name='Sign in',exact=True).click()

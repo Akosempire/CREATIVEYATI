@@ -23,7 +23,7 @@ with sync_playwright() as p:
  page.get_by_label('Email',exact=True).fill('invalid-address')
  page.get_by_role('button',name='Sign in',exact=True).click()
  page.locator('.app-toast').get_by_text('Enter a valid email address.',exact=True).wait_for()
- page.goto(base+'/register',wait_until='commit')
+ page.goto(base+'/register',wait_until='networkidle')
  page.locator('input[name=fullName]').fill('Test learner')
  page.locator('input[name=email]').fill('test@example.invalid')
  page.locator('input[name=password]').fill('test-password-12345')

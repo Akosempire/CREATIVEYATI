@@ -1,5 +1,6 @@
 import { getStudentUser, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { createOrderReference, initialiseCheckout } from "@/lib/payments/provider";
+import { quoteCourse, applyCoupon, QuoteError } from "@/lib/payments/quote";
 import { sendCourseConfirmation } from "@/lib/email/delivery";
 
 export async function POST(request) {
@@ -8,8 +9,9 @@ export async function POST(request) {
   if (!user.email_confirmed_at) return Response.json({ error: "Verify your email before enrolling." }, { status: 403 });
   if (!service) return Response.json({ error: "Course payments are not configured." }, { status: 503 });
   const body = await request.json().catch(() => ({})); const courseId = String(body.courseId || ""); const couponCode = String(body.couponCode || "").trim().toUpperCase();
-  const { data: course } = await service.from("courses").select("*").eq("id", courseId).in("status", ["published", "scheduled"]).is("deleted_at", null).maybeSingle();
-  if (!course || (course.status === "scheduled" && (!course.scheduled_for || new Date(course.scheduled_for).getTime() > Date.now()))) return Response.json({ error: "This course is not available." }, { status: 404 });
+  let quote;
+  try { quote = await quoteCourse(courseId); } catch (error) { return Response.json({ error: error instanceof QuoteError ? error.message : "The course could not be loaded." }, { status: error instanceof QuoteError ? error.status : 500 }); }
+  const { course } = quote;
   const { data: existing } = await service.from("enrolments").select("id").eq("student_id", user.id).eq("course_id", course.id).eq("active", true).maybeSingle();
   if (existing) return Response.json({ redirectUrl: `/learn/${course.slug}` });
   const pendingSince = Date.now() - 15 * 60 * 1000;
@@ -20,16 +22,10 @@ export async function POST(request) {
     if (!checkoutUrl && new Date(pendingOrder.created_at).getTime() > pendingSince) return Response.json({ error: "A checkout is already being prepared. Try again in a moment." }, { status: 409 });
     await service.from("orders").update({ payment_status: "abandoned", updated_at: new Date().toISOString() }).eq("id", pendingOrder.id).eq("payment_status", "pending");
   }
-  const original = course.is_free ? 0 : Number(course.price_minor); const currentTime = Date.now(); const saleActive = course.discounted_price_minor != null && (!course.sale_starts_at || new Date(course.sale_starts_at).getTime() <= currentTime) && (!course.sale_ends_at || new Date(course.sale_ends_at).getTime() >= currentTime);
-  const salePrice = course.is_free ? 0 : Number(saleActive ? course.discounted_price_minor : course.price_minor);
-  let discount = 0; let coupon = null;
-  if (couponCode) {
-    const { data } = await service.from("coupons").select("*").eq("code", couponCode).eq("enabled", true).maybeSingle(); const now = Date.now();
-    if (!data || (data.starts_at && new Date(data.starts_at).getTime() > now) || (data.expires_at && new Date(data.expires_at).getTime() < now) || (data.max_redemptions && data.redemption_count >= data.max_redemptions)) return Response.json({ error: "This coupon is invalid or expired." }, { status: 400 });
-    if (data.discount_type === "fixed" && data.currency.toUpperCase() !== course.currency.toUpperCase()) return Response.json({ error: "This coupon is not valid for the course currency." }, { status: 400 });
-    coupon = data; discount = data.discount_type === "percent" ? Math.round(salePrice * Math.min(Number(data.discount_value), 100) / 100) : Math.round(Number(data.discount_value) * 100); discount = Math.min(salePrice, discount);
-  }
-  const amount = Math.max(0, salePrice - discount); const reference = createOrderReference();
+  // revalidated here so the order amount never comes from the browser, even if
+  // the checkout screen computed its own total
+  try { quote = await applyCoupon(quote, couponCode); } catch (error) { return Response.json({ error: error instanceof QuoteError ? error.message : "This coupon could not be applied." }, { status: error instanceof QuoteError ? error.status : 400 }); }
+  const { amount, discount, coupon, original } = quote; const reference = createOrderReference();
   const { error: orderError } = await service.from("orders").insert({ reference, student_id: user.id, course_id: course.id, amount_minor: amount, original_amount_minor: original, discount_minor: original - amount, currency: course.currency, gateway: amount === 0 ? "free" : "bachs", coupon_id: coupon?.id || null });
   if (orderError) return Response.json({ error: "The order could not be created." }, { status: 500 });
   console.info("payment.initialized", { reference, course_id: course.id, amount_minor: amount, currency: course.currency });

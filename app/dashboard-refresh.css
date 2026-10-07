@@ -125,17 +125,57 @@
 .student-bottom-nav{display:none}
 .security-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}.security-grid article{border:1px solid var(--border);padding:24px;border-radius:14px;background:var(--background)}
 .mfa-qr{width:220px;max-width:100%;margin:20px auto}.mfa-qr svg{width:100%;height:auto}.mfa-secret{display:block;overflow-wrap:anywhere;padding:12px;font-size:13px}
-.checkout-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:36px;max-width:1050px;margin:40px auto;padding:24px}
-.checkout-panel{padding:28px;border:1px solid var(--border);border-radius:16px;background:var(--card)}
-.checkout-steps{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;margin-bottom:30px;color:var(--muted-foreground)}.checkout-steps strong{color:var(--foreground)}
-.checkout-panel img{width:100%;height:auto;border-radius:10px}.checkout-panel .checkout-form{margin:0;display:grid;gap:18px}.checkout-panel dl>div{display:flex;justify-content:space-between;gap:20px;padding-block:10px}.checkout-panel dd{margin:0}
+/* Checkout: order summary left, payment right, both aligned at the top. */
+.checkout-layout{display:grid;grid-template-columns:minmax(0,40fr) minmax(0,60fr);gap:clamp(24px,3vw,44px);align-items:start;width:min(1120px,calc(100% - 10vw));margin:0 auto;padding:clamp(56px,8vh,96px) 0 96px}
+.checkout-summary,.checkout-panel{padding:26px;border:1px solid var(--border);border-radius:16px;background:var(--card)}
+.checkout-summary{display:grid;grid-template-columns:1fr;gap:16px;align-content:start}
+.checkout-summary img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px}
+.checkout-summary h1{margin:0;font-size:clamp(1.35rem,2.4vw,1.75rem);line-height:1.15;letter-spacing:-.03em}
+.checkout-summary .eyebrow{margin:0}
+.checkout-summary-copy{margin:0;color:var(--muted-foreground);font-size:.9rem;line-height:1.55}
+.checkout-summary-meta{margin:0;color:var(--muted);font-size:.8rem}
+.checkout-totals{margin:4px 0 0;padding-top:14px;border-top:1px solid var(--border)}
+.checkout-totals>div{display:flex;justify-content:space-between;gap:20px;padding-block:9px;font-size:.9rem}
+.checkout-totals dt{color:var(--muted)}
+.checkout-totals dd{margin:0}
+.checkout-totals .checkout-total{margin-top:5px;padding-top:14px;border-top:1px solid var(--border);font-weight:600;color:var(--foreground)}
+.checkout-panel{display:grid;gap:18px;align-content:start}
+.checkout-panel h2{margin:0;font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.1;letter-spacing:-.045em}
+.checkout-lede{margin:0;color:var(--muted-foreground);font-size:.95rem;line-height:1.55}
+.checkout-panel .secure-note{margin:0}
+.checkout-support{margin:0}
+
+/* Stepper: completed, current and upcoming are distinct in both mark and text. */
+.checkout-stepper{display:flex;flex-wrap:wrap;gap:12px 26px;margin:0;padding:0;list-style:none;font-size:.78rem;color:var(--muted)}
+.checkout-stepper li{display:flex;align-items:center;gap:9px}
+.checkout-stepper li[data-state="current"]{color:var(--foreground);font-weight:600}
+.checkout-stepper-mark{display:grid;place-items:center;width:22px;height:22px;flex:0 0 22px;border:1px solid var(--border);border-radius:50%;font-size:.7rem;line-height:1}
+.checkout-stepper li[data-state="done"] .checkout-stepper-mark{background:var(--site-accent,#9BC300);border-color:var(--site-accent,#9BC300);color:#101400}
+.checkout-stepper li[data-state="current"] .checkout-stepper-mark{border-color:var(--foreground);color:var(--foreground)}
+
+/* Single column: email, then coupon, then the amount, then the pay action. */
+.checkout-panel .checkout-form{margin:0;display:grid;grid-template-columns:1fr;gap:20px;max-width:none}
+.checkout-field{display:grid;gap:7px;margin:0;color:var(--muted-foreground);font-size:.78rem}
+.checkout-field-note{color:var(--muted)}
+.checkout-field input{width:100%;min-height:44px;padding:10px;color:var(--foreground);background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:15px}
+.checkout-field small{color:var(--muted);font-size:.74rem}
+.checkout-coupon{display:flex;gap:10px}
+.checkout-coupon input{flex:1;min-width:0}
+.checkout-coupon .button{flex:0 0 auto;min-height:44px}
+.checkout-coupon-note{margin:0;color:var(--muted-foreground);font-size:.8rem}
+.checkout-coupon-remove{justify-self:start;padding:0;background:none;border:0;color:var(--muted-foreground);font-size:.78rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.checkout-payable{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.checkout-payable>span{color:var(--muted);font-size:.82rem}
+.checkout-payable>strong{font-size:1.35rem;letter-spacing:-.03em}
+.checkout-payable>small{width:100%;color:var(--muted-foreground);font-size:.78rem}
+.checkout-panel .checkout-pay{width:100%;min-height:48px}
 @media(max-width:899px){
  .admin-shell.is-collapsed .admin-nav-label{display:block}.admin-shell.is-collapsed aside nav a span{display:inline}
  .student-shell .admin-main{padding-bottom:100px}
  .student-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);background:#11120e;padding:8px 4px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #33352a}
  .student-bottom-nav a{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;min-height:48px;color:#c9cbc0;font-size:10px;text-decoration:none}
  .student-bottom-nav a[aria-current=page]{color:#c6f000}.student-bottom-nav svg{width:19px;height:19px}
- .checkout-layout{grid-template-columns:1fr;gap:18px;padding:18px;margin:0}.checkout-panel{padding:22px}
+ .checkout-layout{grid-template-columns:1fr;gap:18px;padding:28px 0 72px}.checkout-summary,.checkout-panel{padding:22px}
 }
 @media(max-width:600px){.invoice-heading{flex-wrap:wrap}.invoice-heading>div{text-align:left}.invoice-lines-wrap{margin-top:50px}.invoice-lines{font-size:10px}.invoice-footer{font-size:12px;gap:16px}.print-document.invoice-document{min-height:780px}.certificate-brand{min-height:80px;margin-bottom:20px;padding:12px 6px}.certificate-brand span{font-size:7px}.certificate-footer{gap:8px;margin-top:18px}.certificate-facts{font-size:8px}.certificate-name{margin-block:10px}}
 @media print{

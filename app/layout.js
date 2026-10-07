@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./dashboard-refresh.css";
 import { getSeoSettings } from "@/lib/data/settings";
+import ToastHost from "@/Components/ToastHost";
 import CreatorSchema from "@/Components/CreatorSchema";
 
 export async function generateMetadata() {
@@ -17,4 +18,4 @@ export async function generateMetadata() {
     twitter: { card: "summary_large_image", title: seo.siteTitle, description: seo.siteDescription, images },
   };
 }
-export default function RootLayout({ children }) { return <html lang="en" data-theme="light" style={{ colorScheme: "light" }}><body><CreatorSchema />{children}</body></html>; }
+export default function RootLayout({ children }) { return <html lang="en" data-theme="light" style={{ colorScheme: "light" }}><body><CreatorSchema />{children}<ToastHost /></body></html>; }

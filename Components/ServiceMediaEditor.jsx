@@ -40,7 +40,7 @@ function Editor({ slot, current }) {
   return <section style={{ border: "1px solid #dfe5da", borderRadius: 16, padding: 24, minWidth: 0 }}><h2>{slot.title}</h2>
     {current?.type === "video" ? <video src={current.url} controls playsInline preload="metadata" aria-label={current.alt || slot.title} style={{ width: "100%", height: 220, objectFit: "contain", background: "#14251b", borderRadius: 12 }} /> : <img src={current?.url || slot.image} alt={current?.alt || slot.title} style={{ width: "100%", height: 220, objectFit: "cover", borderRadius: 12 }} />}
     <form className="admin-form" onSubmit={save}><label>Upload image or video<input type="file" accept={Object.keys(serviceMediaTypes).join(",")} required disabled={busy} onChange={event => { setFile(event.target.files?.[0] || null); setMessage(""); }} /></label><label>Image description / video label<input value={alt} onChange={event => setAlt(event.target.value)} maxLength={240} disabled={busy} required /></label><button className="button" disabled={busy || !file}>{busy ? "Uploading…" : "Upload & publish"}</button>{current && <button type="button" className="button button-secondary" disabled={busy} onClick={reset}>Restore default image</button>}</form>
-    {message && <p role={failed ? "alert" : "status"} className={failed ? "form-error" : "success-note"}>{message}</p>}
+    {message && <p data-toast-kind={failed ? "error" : busy ? "loading" : "success"} role={failed ? "alert" : "status"} className={failed ? "form-error" : "success-note"}>{message}</p>}
   </section>;
 }
 export default function ServiceMediaEditor({ media }) {

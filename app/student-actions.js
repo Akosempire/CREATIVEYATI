@@ -12,7 +12,12 @@ export async function resendStudentVerification(formData) {
   const supabase = await createSupabaseAuthClient();
   const next = safeNext(formData.get("next"));
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
-  await supabase?.auth.resend({ type: "signup", email: String(formData.get("email") || "").trim(), options: { emailRedirectTo: site + "/auth/callback?next=" + encodeURIComponent(next) } });
+  if (!supabase) redirect("/verify-email?error=Email+verification+is+temporarily+unavailable.");
+  const { error } = await supabase.auth.resend({ type: "signup", email: String(formData.get("email") || "").trim(), options: { emailRedirectTo: site + "/auth/callback?next=" + encodeURIComponent(next) } });
+  if (error) {
+    console.error("Auth verification email failed", { code: error.code, status: error.status });
+    redirect("/verify-email?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "Too many requests. Please wait before requesting another email." : "The email request could not be completed. Please try again later."));
+  }
   redirect("/verify-email?next=" + encodeURIComponent(next) + "&message=If+verification+is+needed%2C+an+email+has+been+sent.");
 }
 
@@ -65,7 +70,12 @@ export async function requestPasswordReset(formData) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
   const next = safeNext(formData.get("next"));
   const recoveryPath = "/reset-password/update?next=" + encodeURIComponent(next);
-  await supabase?.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(recoveryPath)}` });
+  if (!supabase) redirect("/reset-password?error=Password+reset+is+temporarily+unavailable.");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(recoveryPath)}` });
+  if (error) {
+    console.error("Auth password reset email failed", { code: error.code, status: error.status });
+    redirect("/reset-password?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "Too many requests. Please wait before requesting another reset email." : "The reset email request could not be completed. Please try again later."));
+  }
   redirect("/reset-password?next=" + encodeURIComponent(next) + "&message=If+that+account+exists%2C+a+reset+link+has+been+sent.");
 }
 

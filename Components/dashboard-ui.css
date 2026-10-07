@@ -1,6 +1,9 @@
 /* Extend the live Overview language; scoped to authenticated layouts. */
 .admin-shell {--aw-ink:#273a2e;--aw-green:#2c543c;--aw-muted:#77816f;--aw-line:#e6e8df;--aw-gold:#a58a52;--fm-line:var(--aw-line);--fm-ink:var(--aw-ink);--color-border:var(--aw-line);--border:var(--aw-line);--radius-md:20px;--radius-lg:23px;--color-focus-ring:var(--aw-green)}
 .admin-shell > .admin-main,.admin-shell > .admin-main:has(.admin-workspace),.admin-shell > .admin-main:has(.student-workspace){padding:38px 38px 60px;min-width:0;overflow-x:visible;background:#fff}
+/* every dashboard page steps its gutter down at the same widths, so content
+   never shifts sideways when moving between an overview and a list page */
+@media(max-width:1200px){.admin-shell > .admin-main,.admin-shell > .admin-main:has(.admin-workspace),.admin-shell > .admin-main:has(.student-workspace){padding:30px 24px 48px}}
 .dashboard-page{width:100%;max-width:1500px;margin-inline:auto;min-width:0;font-family:DocumentSans,Arial,sans-serif;color:var(--aw-ink);font-size:14px;line-height:1.6}
 .dashboard-page *, .dashboard-page *::before,.dashboard-page *::after{box-sizing:border-box}
 .dashboard-page > .public-note,.dashboard-page > .learn-dashboard{width:100%;max-width:none;padding:0;margin:0}
@@ -12,6 +15,7 @@
 .admin-shell > aside nav .dashboard-sidebar-item svg{width:18px;height:18px;flex:0 0 18px;margin:0}.admin-shell > aside nav .dashboard-sidebar-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-shell > aside nav .dashboard-sidebar-item.is-active{background:#C6F000;color:#11120E}.admin-shell > aside nav .dashboard-sidebar-item:hover:not(.is-active){background:#25271f;color:#fff}
 @media(min-width:900px){.admin-shell.is-collapsed > aside nav .dashboard-sidebar-item,.admin-shell.is-collapsed > aside nav .dashboard-sidebar-item.is-active{justify-content:center;padding:10px 0;gap:0}.admin-shell.is-collapsed > aside nav .dashboard-sidebar-item span{display:none}}
 .dashboard-page .button,.dashboard-page .row-actions button:not(.button),.dashboard-page .admin-filters button:not(.button),.dashboard-page .course-save-bar button:not(.button){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--aw-green);border-radius:10px;padding:10px 18px;background:var(--aw-green);color:#fff;font:600 14px/1.5 DocumentSans,Arial,sans-serif;text-decoration:none;cursor:pointer;max-width:100%;white-space:normal;vertical-align:middle}
+.dashboard-page .reorder-toolbar .button,.dashboard-page .reorder-toolbar button:not(.button){min-height:36px;padding:0 14px;font-size:13px}
 .dashboard-page .button-secondary,.dashboard-page .row-actions button:not(.button){background:#fff;color:var(--aw-ink);border-color:var(--aw-line)}.dashboard-page .button-ghost{background:transparent;color:var(--aw-green);border-color:transparent}.dashboard-page .button-danger,.dashboard-page .danger-action button{background:#fff5f4;color:#922b24;border-color:#e9bfba}
 .dashboard-page .button:hover:not(:disabled){background:#234630;border-color:#234630;color:#fff;transform:none}.dashboard-page .button-secondary:hover:not(:disabled),.dashboard-page .button-ghost:hover:not(:disabled){background:#f0f4ed;border-color:#c1cdbb;color:var(--aw-ink)}.dashboard-page .button-danger:hover:not(:disabled){background:#fce5e2;border-color:#cb8b83;color:#922b24}
 .dashboard-page :is(button,.button):disabled{opacity:.55;cursor:not-allowed;transform:none}.dashboard-page :focus-visible{outline:2px solid var(--aw-green);outline-offset:3px}

@@ -60,6 +60,14 @@
 .fm-auth .fm-auth-form {grid-template-columns:minmax(0,1fr);width:100%}
 .fm-auth .fm-auth-form>* {min-width:0}
 .fm-auth .fm-auth-form .button {width:100%}
+.password-fields {display:grid;gap:8px;min-width:0}
+.password-input-wrap {position:relative;min-width:0}
+.fm-auth .password-input-wrap input {padding-right:70px}
+.password-visibility {position:absolute;inset:0 2px 0 auto;min-width:60px;min-height:44px;border:0;border-radius:8px;background:transparent;color:#284E36;font-size:13px;font-weight:600;cursor:pointer}
+.password-visibility:hover {background:#F3F4EF}
+.password-visibility:focus-visible {outline:2px solid #284E36;outline-offset:-3px}
+.password-hint {margin:0 0 8px;font-size:12px;line-height:1.6;color:#605E58}
+.password-feedback {min-height:20px;margin-bottom:0}
 .fm-auth :is(input,select,textarea) {width:100%;min-width:0;min-height:44px;font-size:16px}
 .fm-auth :is(.fm-auth-alt,.fm-auth-forgot) a {text-underline-offset:4px;text-decoration-thickness:1px}
 @media(prefers-reduced-motion:reduce) {

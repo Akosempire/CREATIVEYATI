@@ -90,7 +90,7 @@ export async function updateStudentPassword(formData) {
   if (error) redirect(`/reset-password/update?next=${encodeURIComponent(next)}&error=Password+could+not+be+updated.+Request+a+new+reset+link.`);
   await supabase.auth.signOut({ scope: "others" });
   await clearPasswordRecovery();
-  redirect(next);
+  redirect("/reset-password/success?next=" + encodeURIComponent(next));
 }
 
 export async function updateStudentProfile(formData) {

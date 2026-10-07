@@ -27,6 +27,44 @@
 }
 .fm-auth,.admin-shell{font-family:DocumentSans,Arial,sans-serif}
 .fm-auth-card h1,.fm-auth-aside h2,.admin-shell .admin-title h1,.admin-shell h2{font-family:Fredoka,Arial,sans-serif}
+
+/* shared action hierarchy; leave sidebar and icon controls independent */
+:is(.admin-main,.learn-area,.fm-auth) .button {
+ display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ min-height:44px;max-width:100%;padding:11px 18px;border:1px solid #C6F000;
+ border-radius:10px;background:#C6F000;color:#11120E;
+ font-size:14px;font-weight:600;line-height:1.4;text-align:center;text-decoration:none;
+ white-space:normal;cursor:pointer;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button-secondary {
+ background:#FFFFFF;border-color:#D6D8CE;color:#11120E;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button-danger {
+ background:#FFF5F4;border-color:#E9BFBA;color:#922B24;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button:hover:not(:disabled) {
+ background:#B5DB00;border-color:#B5DB00;transform:none;box-shadow:none;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button-secondary:hover:not(:disabled) {
+ background:#F3F4EF;border-color:#A8AD9D;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button-danger:hover:not(:disabled) {
+ background:#FCE5E2;border-color:#CB8B83;color:#922B24!important;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button:active:not(:disabled) {transform:translateY(1px)}
+:is(.admin-main,.learn-area,.fm-auth) .button:focus-visible {outline:2px solid #284E36;outline-offset:3px}
+:is(.admin-main,.learn-area,.fm-auth) .button:disabled {
+ opacity:1;background:#EBEDE5;border-color:#D9DDD1;color:#69705F;cursor:not-allowed;transform:none;box-shadow:none;
+}
+:is(.admin-main,.learn-area,.fm-auth) .button[aria-busy="true"] {cursor:progress}
+.fm-auth .fm-auth-form {grid-template-columns:minmax(0,1fr);width:100%}
+.fm-auth .fm-auth-form>* {min-width:0}
+.fm-auth .fm-auth-form .button {width:100%}
+.fm-auth :is(input,select,textarea) {width:100%;min-width:0;min-height:44px;font-size:16px}
+.fm-auth :is(.fm-auth-alt,.fm-auth-forgot) a {text-underline-offset:4px;text-decoration-thickness:1px}
+@media(prefers-reduced-motion:reduce) {
+ :is(.admin-main,.learn-area,.fm-auth) .button:active:not(:disabled) {transform:none}
+}
 .admin-shell .admin-title{margin:20px 0 28px}.admin-shell .admin-title h1{font-size:clamp(26px,3vw,38px);font-weight:700}
 .admin-shell aside{overflow-y:auto;max-height:100dvh}
 @media(min-width:900px){.admin-shell.is-collapsed aside{padding-inline:8px}.admin-shell.is-collapsed .admin-shell-email{display:none}}

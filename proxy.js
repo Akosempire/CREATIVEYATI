@@ -1,8 +1,23 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
+// GoTrue drops an unlisted redirectTo and resends the token to the Site URL, so a recovery
+// link can arrive on any path. Forward it before the page renders and swallows the params.
+function recoveryParams(request) {
+  if (request.method !== "GET") return null;
+  const requestUrl = new URL(request.url);
+  const path = requestUrl.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/auth/callback" || path.startsWith("/api/")) return null;
+  const params = requestUrl.searchParams;
+  const recovery = params.get("token_hash") && params.get("type") === "recovery";
+  if (!recovery && !params.has("code")) return null;
+  return params;
+}
+
 export async function proxy(request) {
   let response = NextResponse.next({ request });
+  const forwarded = recoveryParams(request);
+  if (forwarded) return NextResponse.redirect(new URL("/auth/callback?" + forwarded.toString(), request.url));
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key || !request.cookies.getAll().some(cookie => cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"))) return response;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import PublicHeader from "@/Components/PublicHeader";
 import CourseCard from "@/Components/CourseCard";
 import PublicFooter from "@/Components/PublicFooter";
+import Showreel from "@/Components/Showreel";
 import { getPublicPortfolio } from "@/lib/data/public";
 import { getSiteContent } from "@/lib/data/site";
 import { getCourseSettings } from "@/lib/data/settings";
@@ -36,15 +37,47 @@ function stillFor(video) {
   return video?.posterUrl || video?.poster_url || video?.thumbnailUrl || video?.thumbnail_url || video?.imageUrl || video?.image_url || video?.src || video?.url || "";
 }
 
+// The headline is editable in the CMS, so the three-line hierarchy is derived
+// rather than hardcoded: the intro sits above, and the struck word opens the
+// emphasised lower lines. Falls back to even thirds if the marked word is gone.
+function headlineParts(text, highlight) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const mark = (word) => String(word).toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (words.length < 4) return { top: words.join(" "), strike: "", mid: "", tail: "" };
+
+  const target = mark(highlight || "");
+  let at = target ? words.findIndex((word, i) => i > 0 && mark(word) === target) : -1;
+  if (at < 1) at = Math.max(1, Math.round(words.length / 3));
+
+  const intro = words.slice(0, at);
+  const rest = words.slice(at);
+  const cut = Math.max(1, Math.ceil(rest.length / 2));
+  const struck = target && mark(rest[0]) === target;
+
+  return {
+    top: intro.join(" "),
+    strike: struck ? rest[0] : "",
+    mid: (struck ? rest.slice(1, cut) : rest.slice(0, cut)).join(" "),
+    tail: rest.slice(cut).join(" "),
+  };
+}
+
 export default async function Home() {
   const [{ videos, error }, site, courseSettings, socialLinks] = await Promise.all([getPublicPortfolio(), getSiteContent(), getCourseSettings(), getPublicSocialLinks()]);
   const courses = courseSettings.homepageEnabled ? await getPublishedCourses({ featured: true, limit: courseSettings.homepageLimit }) : [];
 
-  const heading = site.heroHeading.split(site.highlightWord);
+  const line = headlineParts(site.heroHeading, site.highlightWord);
   // every published project drifts past, not a selection of them: upload more
   // and they join the loop without a code change
   const cards = videos || [];
   const centre = (cards.length - 1) / 2;
+
+  // the showreel leads with real work; local/empty catalogues still need a frame
+  const total = cards.length || 1;
+  const reelStill = stillFor(cards[0]) || "/img12.jpg";
+  const reelAlt = cards[0]?.title || "AI commercial showreel still";
+  const floatA = stillFor(cards[1]) || "/img3.png";
+  const floatB = stillFor(cards[2]) || "/img11.png";
 
   function Card({ video, index, keyPrefix }) {
     const distance = Math.abs(index - centre);
@@ -65,15 +98,38 @@ export default async function Home() {
       <PublicHeader site={site} current="/" />
 
       <section className="lh-hero">
-        <p className="lh-badge">AI VIDEO CREATOR · VIDEO EDITOR · AI TUTOR</p>
-        <h1 className="lh-headline">
-          {heading[0]}<span className="lh-strike">{site.highlightWord}</span>{heading.slice(1).join(site.highlightWord)}
-        </h1>
-        <p className="lh-lede">Idayat Ibrahim is an AI video creator and editor based in Nigeria, creating AI commercials, product films, UGC-style content and branded campaigns for clients worldwide.</p>
-        <div className="lh-actions">
-          <Link className="lh-btn lh-btn-primary" href="/contact">{site.ctaLabel || "Start a project"}</Link>
-          <Link className="lh-btn lh-btn-secondary" href="/work">See the work</Link>
+        <div className="lh-hero-grid">
+          <div className="lh-hero-copy">
+            <p className="lh-badge"><span className="lh-badge-dot" aria-hidden="true" />AI VIDEO CREATOR · VIDEO EDITOR · AI TUTOR</p>
+            <h1 className="lh-headline">
+              <span className="lh-line lh-line-intro">{line.top}</span>
+              <span className="lh-line lh-line-em">
+                {line.strike ? <span className="lh-strike">{line.strike}<svg className="lh-strike-mark" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" vectorEffect="non-scaling-stroke" d="M6 15 C 52 7, 96 19, 146 11 S 244 5, 294 14" /></svg></span> : null}
+                {line.mid ? ` ${line.mid}` : ""}
+              </span>
+              <span className="lh-line lh-line-em">{line.tail}</span>
+            </h1>
+            <p className="lh-lede">Idayat Ibrahim is an AI video creator and editor based in Nigeria, creating AI commercials, product films, UGC-style content and branded campaigns for clients worldwide.</p>
+            <div className="lh-actions">
+              <Link className="lh-btn lh-btn-primary" href="/work">View Selected Work</Link>
+              <Link className="lh-btn lh-btn-secondary" href="/contact">Let&apos;s Work Together <span aria-hidden="true">↗</span></Link>
+            </div>
+            <p className="lh-cred">Commercials · Product Films · UGC · Campaigns</p>
+          </div>
+
+          <div className="lh-hero-media">
+            <span className="lh-float lh-float-a" aria-hidden="true"><img src={floatA} alt="" /></span>
+            <span className="lh-float lh-float-b" aria-hidden="true"><img src={floatB} alt="" /></span>
+            <Showreel still={reelStill} alt={reelAlt} />
+          </div>
         </div>
+
+        <p className="lh-meta">
+          <span>Based in Nigeria / Working Worldwide</span>
+          <span>Index {String(1).padStart(2, "0")}/{String(total).padStart(2, "0")}</span>
+          <span>Frame 0128</span>
+          <span>TC 00:00:04:12</span>
+        </p>
       </section>
 
       {error ? <p className="empty-state">{error}</p> : null}

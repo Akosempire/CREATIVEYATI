@@ -26,7 +26,7 @@
  .admin-shell .admin-title h1{font-size:28px}
 }
 .fm-auth,.admin-shell{font-family:DocumentSans,Arial,sans-serif}
-.fm-auth-card h1,.fm-auth-aside h2,.admin-shell .admin-title h1,.admin-shell h2{font-family:DocumentSans,Arial,sans-serif}
+.fm-auth-card h1,.fm-auth-aside h2,.admin-shell .admin-title h1,.admin-shell h2{font-family:Fredoka,Arial,sans-serif}
 .admin-shell .admin-title{margin:20px 0 28px}.admin-shell .admin-title h1{font-size:clamp(26px,3vw,38px);font-weight:700}
 .admin-shell aside{overflow-y:auto;max-height:100dvh}
 @media(min-width:900px){.admin-shell.is-collapsed aside{padding-inline:8px}.admin-shell.is-collapsed .admin-shell-email{display:none}}

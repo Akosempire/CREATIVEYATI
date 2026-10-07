@@ -7,8 +7,8 @@ import { bachsSettingsSchema, contactSettingsSchema, emailSettingsSchema, seoSet
 import { getVideoSource } from "@/lib/video-source";
 import { getSiteContent } from "@/lib/data/site";
 import { clearDirectAdminSession } from "@/lib/admin-session";
-import { getStoredBachsSettings, getStoredEmailSettings } from "@/lib/data/settings";
-import { canEncryptSecrets, canEncryptSmtp, encryptSecretSettings, encryptSmtpSettings } from "@/lib/email/crypto";
+import { getStoredBachsSettings } from "@/lib/data/settings";
+import { canEncryptSecrets, encryptSecretSettings } from "@/lib/email/crypto";
 import { sendCourseConfirmation, sendEnquiryNotification, sendSettingsTestEmail } from "@/lib/email/delivery";
 import { recordRefund, requestRefund, testBachsConnection } from "@/lib/payments/provider";
 import { getCourseVideoSource } from "@/lib/course-video-source";
@@ -263,18 +263,12 @@ export async function saveSeoSettings(formData) {
 export async function saveEmailSettings(formData) {
   await admin();
   const parsed = emailSettingsSchema.safeParse({
-    ...settingValues(formData, ["host", "port", "username", "password", "fromName", "fromEmail", "recipientEmail"]),
+    ...settingValues(formData, ["fromName", "fromEmail", "recipientEmail"]),
     enabled: formData.get("enabled") === "on",
-    secure: formData.get("secure") === "on",
-    clearPassword: formData.get("clearPassword") === "on",
   });
   if (!parsed.success) redirect(`/admin/settings/email?error=${encodeURIComponent(parsed.error.issues[0].message)}`);
-  const existing = await getStoredEmailSettings();
-  const { password: replacement, clearPassword, ...value } = parsed.data;
-  if (!canEncryptSmtp()) redirect("/admin/settings/email?error=SMTP+encryption+is+not+configured");
-  if (value.enabled && (!value.host || !value.fromEmail || !value.recipientEmail)) redirect("/admin/settings/email?error=Complete+the+host%2C+from+email+and+recipient+before+enabling+delivery");
-  value.password = clearPassword ? "" : replacement || existing.password || "";
-  await saveSetting("email", { sealed: encryptSmtpSettings(value) });
+  if (parsed.data.enabled && (!parsed.data.fromEmail || !parsed.data.recipientEmail)) redirect("/admin/settings/email?error=Complete+the+from+email+and+recipient+before+enabling+delivery");
+  await saveSetting("email", parsed.data);
   redirect("/admin/settings/email?saved=1");
 }
 

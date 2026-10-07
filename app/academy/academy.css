@@ -1,7 +1,7 @@
 .academy-redesign{--avc-ink:#163d26;--avc-muted:#526456;--avc-lime:#d9ee92;background:#fcfcf6;color:var(--avc-ink);font-family:DocumentSans,Arial,sans-serif;padding:0}
 .academy-redesign *{box-sizing:border-box}
 .academy-redesign a{color:inherit;text-decoration:none}
-.academy-redesign h1,.academy-redesign h2,.academy-redesign h3{font-family:DocumentSans,Arial,sans-serif;font-weight:500;letter-spacing:-.055em;color:var(--avc-ink)}
+.academy-redesign h1,.academy-redesign h2,.academy-redesign h3{font-family:Fredoka,Arial,sans-serif;font-weight:500;letter-spacing:-.055em;color:var(--avc-ink)}
 .academy-redesign p{line-height:1.65}
 .academy-redesign :focus-visible{outline:3px solid #647a18;outline-offset:5px}
 .academy-redesign [id]{scroll-margin-top:100px}

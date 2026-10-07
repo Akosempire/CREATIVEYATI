@@ -6,11 +6,20 @@ import { ensureStudentProfile } from "@/lib/auth/student-profile";
 
 export async function GET(request) {
   const url = new URL(request.url);
+  // Some email relays leave HTML entities in query parameter names.
+  // Normalize names only; never alter the token or trust an unverified session.
+  for (const [key, value] of [...url.searchParams]) {
+    const normalized = key.replace(/^(?:amp;)+/, "");
+    if (["type", "token_hash", "next"].includes(normalized) && !url.searchParams.has(normalized)) {
+      url.searchParams.set(normalized, value);
+    }
+  }
   const code = url.searchParams.get("code");
   const requested = url.searchParams.get("next") || "/learn";
   const next = safeNext(requested);
   const tokenHash = url.searchParams.get("token_hash");
-  const recoveryToken = Boolean(tokenHash && url.searchParams.get("type") === "recovery");
+  const recoveryRequested = url.searchParams.get("type") === "recovery";
+  const recoveryToken = Boolean(tokenHash && recoveryRequested);
   const recoveryDestination = new URL(next, url.origin).pathname === "/reset-password/update";
   if (code || recoveryToken) {
     const supabase = await createSupabaseAuthClient();
@@ -28,8 +37,9 @@ export async function GET(request) {
       if (!next.startsWith("/admin")) await ensureStudentProfile(data.user);
       return NextResponse.redirect(new URL(next, url.origin));
     }
+    console.error("Auth callback verification failed", { flow: recoveryToken ? "recovery" : "pkce", code: error?.code, status: error?.status });
   }
-  const failure = recoveryToken || recoveryDestination
+  const failure = recoveryRequested || recoveryDestination
     ? "/reset-password?error=This+reset+link+is+invalid+or+expired.+Please+request+a+new+one."
     : "/login?error=The+sign-in+link+is+invalid+or+expired";
   return NextResponse.redirect(new URL(failure, url.origin));

@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import PublicHeader from "@/Components/PublicHeader";
 import CourseCard from "@/Components/CourseCard";
@@ -35,6 +36,18 @@ const WASHES = [
 // project actually carries rather than assuming one
 function stillFor(video) {
   return video?.posterUrl || video?.poster_url || video?.thumbnailUrl || video?.thumbnail_url || video?.imageUrl || video?.image_url || video?.src || video?.url || "";
+}
+
+// Each word rises on its own delay, so the headline assembles rather than
+// appearing as a block. `base` is seconds from page load.
+function Words({ text, base }) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  return words.map((word, i) => (
+    <Fragment key={`${word}-${i}`}>
+      <span className="lh-word" style={{ animationDelay: `${Math.round((base + i * 0.045) * 1000)}ms` }}>{word}</span>
+      {i < words.length - 1 ? " " : null}
+    </Fragment>
+  ));
 }
 
 // The headline is editable in the CMS, so the three-line hierarchy is derived
@@ -102,12 +115,13 @@ export default async function Home() {
           <div className="lh-hero-copy">
             <p className="lh-badge"><span className="lh-badge-dot" aria-hidden="true" />AI VIDEO CREATOR · VIDEO EDITOR · AI TUTOR</p>
             <h1 className="lh-headline">
-              <span className="lh-line lh-line-intro">{line.top}</span>
+              <span className="lh-line lh-line-intro"><Words text={line.top} base={0.14} /></span>
               <span className="lh-line lh-line-em">
-                {line.strike ? <span className="lh-strike">{line.strike}<svg className="lh-strike-mark" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" vectorEffect="non-scaling-stroke" d="M6 15 C 52 7, 96 19, 146 11 S 244 5, 294 14" /></svg></span> : null}
-                {line.mid ? ` ${line.mid}` : ""}
+                {line.strike ? <span className="lh-strike lh-word" style={{ animationDelay: "340ms" }}>{line.strike}<svg className="lh-strike-mark" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" vectorEffect="non-scaling-stroke" d="M6 12 C 52 9, 96 15, 146 11 S 244 9, 294 13" /></svg></span> : null}
+                {line.strike && line.mid ? " " : null}
+                <Words text={line.mid} base={0.385} />
               </span>
-              <span className="lh-line lh-line-em">{line.tail}</span>
+              <span className="lh-line lh-line-em"><Words text={line.tail} base={0.46} /></span>
             </h1>
             <p className="lh-lede">Idayat Ibrahim is an AI video creator and editor based in Nigeria, creating AI commercials, product films, UGC-style content and branded campaigns for clients worldwide.</p>
             <div className="lh-actions">

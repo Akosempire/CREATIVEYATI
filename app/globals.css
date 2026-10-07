@@ -1222,15 +1222,15 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 /* the opening line sits back so "people want to watch" carries the weight */
 .lh-headline { margin: 0; font-family: Fredoka, sans-serif; font-size: clamp(3rem, 4.4vw, 3.9rem); line-height: .98; letter-spacing: -.035em; color: #0d0d0c; }
 .lh-line { display: block; }
-.lh-line-intro { font-size: .84em; font-weight: 500; letter-spacing: -.025em; color: #7b7871; animation: lh-rise .8s .14s both; }
-.lh-line-em { font-weight: 700; animation: lh-rise .8s both; }
-.lh-line-em:nth-of-type(2) { animation-delay: .26s; }
-.lh-line-em:nth-of-type(3) { animation-delay: .38s; }
+.lh-line-intro { font-size: .84em; font-weight: 500; letter-spacing: -.025em; color: #7b7871; }
+.lh-line-em { font-weight: 700; }
+.lh-word { display: inline-block; animation: lh-rise .7s both; }
 
-/* hand-drawn strike: a slightly wobbling path that draws itself once */
+/* hand-drawn strike: a slightly wobbling path that draws itself once.
+   the box is offset so the stroke lands mid x-height, not near the baseline */
 .lh-strike { position: relative; display: inline-block; white-space: nowrap; }
-.lh-strike-mark { position: absolute; left: -5%; top: 48%; width: 110%; height: .5em; overflow: visible; transform: rotate(-.7deg); pointer-events: none; }
-.lh-strike-mark path { fill: none; stroke: #0d0d0c; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: lh-draw .62s .68s cubic-bezier(.4, 0, .2, 1) forwards; }
+.lh-strike-mark { position: absolute; left: -3%; top: 39%; width: 106%; height: .34em; overflow: visible; transform: rotate(-.6deg); pointer-events: none; }
+.lh-strike-mark path { fill: none; stroke: #0d0d0c; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: lh-draw .62s .68s cubic-bezier(.4, 0, .2, 1) forwards; }
 
 .lh-lede { max-width: 530px; margin: clamp(20px, 2.6vh, 30px) 0 0; font-size: 1rem; line-height: 1.75; color: #57544f; animation: lh-fade .8s .44s both; }
 
@@ -1254,7 +1254,9 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .lh-reel:hover .lh-reel-play { transform: scale(1.05); }
 .lh-reel-play-ring { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--site-accent, #a3c900); }
 
-.lh-reel-chrome { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 18px; }
+/* solid bar, not a scrim: the still is bright at the bottom and white-on-white
+   would swallow the timecode */
+.lh-reel-chrome { position: absolute; left: 0; right: 0; bottom: 0; padding: 15px 18px; background: #0d0d0c; }
 .lh-reel-track { display: block; height: 2px; background: rgba(247, 245, 241, .3); }
 .lh-reel-fill { display: block; width: 34%; height: 100%; background: var(--site-accent, #a3c900); }
 .lh-reel-chrome-meta { display: flex; justify-content: space-between; margin-top: 9px; font-size: .62rem; letter-spacing: .14em; color: rgba(247, 245, 241, .78); }
@@ -1290,14 +1292,22 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .lh-reel { aspect-ratio: 4 / 5; }
   .lh-reel-cursor { display: none; }
   .lh-reel { cursor: pointer; }
-  .lh-meta { gap: 6px 16px; }
+  /* the layered stills would only clip against the viewport at this width */
+  .lh-float { display: none; }
+  /* pull the stack in: the required order already runs five blocks deep */
+  .lh-hero-grid { gap: 22px; }
+  .lh-badge { margin-bottom: 14px; }
+  .lh-lede { margin-top: 16px; line-height: 1.68; }
+  .lh-actions { margin-top: 22px; }
+  .lh-cred { margin-top: 16px; }
+  .lh-meta { margin-top: 24px; gap: 6px 16px; }
 }
 @media (hover: none) {
   .lh-reel-cursor { display: none; }
   .lh-reel { cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lh-badge, .lh-line, .lh-lede, .lh-actions, .lh-cred, .lh-meta, .lh-reel, .lh-float { animation: none; }
+  .lh-badge, .lh-word, .lh-lede, .lh-actions, .lh-cred, .lh-meta, .lh-reel, .lh-float { animation: none; }
   .lh-strike-mark path { stroke-dashoffset: 0; animation: none; }
   .lh-reel-still { transition: none; }
 }

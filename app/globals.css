@@ -1219,18 +1219,23 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .lh-badge { display: flex; align-items: center; gap: 10px; margin: 0 0 clamp(16px, 2.2vh, 26px); font-size: .68rem; letter-spacing: .17em; text-transform: uppercase; color: #706d67; animation: lh-fade .7s .05s both; }
 .lh-badge-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--site-accent, #a3c900); }
 
-/* the opening line sits back so "people want to watch" carries the weight */
-.lh-headline { margin: 0; font-family: Fredoka, sans-serif; font-size: clamp(3rem, 4.4vw, 3.9rem); line-height: .98; letter-spacing: -.035em; color: #0d0d0c; }
+.lh-headline { margin: 0; font-family: Fredoka, sans-serif; font-size: clamp(3rem, 4.4vw, 3.9rem); font-weight: 700; line-height: .98; letter-spacing: -.035em; color: #0d0d0c; }
 .lh-line { display: block; }
-.lh-line-intro { font-size: .84em; font-weight: 500; letter-spacing: -.025em; color: #7b7871; }
-.lh-line-em { font-weight: 700; }
 .lh-word { display: inline-block; animation: lh-rise .7s both; }
 
-/* hand-drawn strike: a slightly wobbling path that draws itself once.
-   the box is offset so the stroke lands mid x-height, not near the baseline */
-.lh-strike { position: relative; display: inline-block; white-space: nowrap; }
-.lh-strike-mark { position: absolute; left: -3%; top: 39%; width: 106%; height: .34em; overflow: visible; transform: rotate(-.6deg); pointer-events: none; }
-.lh-strike-mark path { fill: none; stroke: #0d0d0c; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: lh-draw .62s .68s cubic-bezier(.4, 0, .2, 1) forwards; }
+/* every rotating word shares one grid cell, so the track is as wide as the
+   widest of them and the sentence never reflows as the words swap */
+.lh-rotator { display: inline-grid; vertical-align: baseline; color: var(--site-accent, #a3c900); animation: lh-fade .7s both; }
+.lh-rot-word { grid-area: 1 / 1; white-space: nowrap; opacity: 0; animation: lh-rotate 10s infinite both; }
+/* a vertical roll with no overlap: the outgoing word has fully left before the
+   next one enters, so two lime words are never on screen at once */
+@keyframes lh-rotate {
+  0% { opacity: 0; transform: translateY(.3em); filter: blur(8px); }
+  3% { opacity: 1; transform: none; filter: blur(0px); }
+  17% { opacity: 1; transform: none; filter: blur(0px); }
+  20% { opacity: 0; transform: translateY(-.3em); filter: blur(8px); }
+  100% { opacity: 0; transform: translateY(-.3em); filter: blur(8px); }
+}
 
 .lh-lede { max-width: 530px; margin: clamp(20px, 2.6vh, 30px) 0 0; font-size: 1rem; line-height: 1.75; color: #57544f; animation: lh-fade .8s .44s both; }
 
@@ -1270,13 +1275,12 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .lh-float-a { width: 34%; aspect-ratio: 4 / 5; top: -7%; right: -7%; }
 .lh-float-b { width: 30%; aspect-ratio: 5 / 4; bottom: -8%; left: -8%; }
 
-.lh-meta { display: flex; flex-wrap: wrap; gap: 8px 26px; justify-content: space-between; margin: clamp(30px, 5vh, 58px) 0 0; padding-top: 16px; border-top: 1px solid #e2ded5; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: #9c978f; animation: lh-fade .7s .95s both; }
+@keyframes lh-enter { from { opacity: 0; transform: translateX(42px) scale(.97); } to { opacity: 1; transform: none; } }
 
 @keyframes lh-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes lh-rise { from { opacity: 0; transform: translateY(.4em); } to { opacity: 1; transform: none; } }
 @keyframes lh-pop { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes lh-enter { from { opacity: 0; transform: translateX(42px) scale(.97); } to { opacity: 1; transform: none; } }
-@keyframes lh-draw { to { stroke-dashoffset: 0; } }
 
 @media (min-width: 1024px) {
   .lh-hero-grid { grid-template-columns: minmax(0, 1.06fr) minmax(0, .84fr); }
@@ -1300,15 +1304,15 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
   .lh-lede { margin-top: 16px; line-height: 1.68; }
   .lh-actions { margin-top: 22px; }
   .lh-cred { margin-top: 16px; }
-  .lh-meta { margin-top: 24px; gap: 6px 16px; }
 }
 @media (hover: none) {
   .lh-reel-cursor { display: none; }
   .lh-reel { cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lh-badge, .lh-word, .lh-lede, .lh-actions, .lh-cred, .lh-meta, .lh-reel, .lh-float { animation: none; }
-  .lh-strike-mark path { stroke-dashoffset: 0; animation: none; }
+  .lh-badge, .lh-word, .lh-rotator, .lh-lede, .lh-actions, .lh-cred, .lh-reel, .lh-float { animation: none; }
+  .lh-rot-word { animation: none; opacity: 0; }
+  .lh-rot-word:first-child { opacity: 1; }
   .lh-reel-still { transition: none; }
 }
 .lh-gallery { margin-top: 34px; overflow: hidden; }

@@ -52,7 +52,7 @@ export default async function AboutPage() {
         </aside>
 
         <div className="about-sections">
-          {sections.map((section) => <section className={`about-section${section.quote ? " is-quote" : ""}`} key={section.id}>
+          {sections.map((section) => <section className="about-section" key={section.id}>
             <h2 className="about-label">{section.heading}</h2>
             {section.quote ? <blockquote className="about-quote" data-reveal>{section.quote}</blockquote> : <div className="about-prose">{section.body}</div>}
           </section>)}

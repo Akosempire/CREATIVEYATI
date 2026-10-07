@@ -32,6 +32,7 @@ export async function POST(request) {
   const amount = Math.max(0, salePrice - discount); const reference = createOrderReference();
   const { error: orderError } = await service.from("orders").insert({ reference, student_id: user.id, course_id: course.id, amount_minor: amount, original_amount_minor: original, discount_minor: original - amount, currency: course.currency, gateway: amount === 0 ? "free" : "bachs", coupon_id: coupon?.id || null });
   if (orderError) return Response.json({ error: "The order could not be created." }, { status: 500 });
+  console.info("payment.initialized", { reference, course_id: course.id, amount_minor: amount, currency: course.currency });
   if (amount === 0) {
     const { error } = await service.rpc("complete_course_purchase", { order_reference: reference, provider_reference: reference, provider_channel: "free", provider_payload: { status: "success", amount: 0, currency: course.currency, reference } });
     if (error) return Response.json({ error: "Free enrolment could not be completed." }, { status: 500 });
@@ -40,10 +41,13 @@ export async function POST(request) {
   }
   try {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
-    const checkout = await initialiseCheckout({ email: user.email, name: user.user_metadata?.full_name || "", amountMinor: amount, currency: course.currency, reference, successUrl: `${siteUrl}/payment/success`, cancelUrl: `${siteUrl}/payment/failed?reference=${encodeURIComponent(reference)}`, metadata: { order_id: reference, course_id: course.id, student_id: user.id } });
+    // the reference goes on the success URL so an expired session can still
+    // resolve and verify the order when Bachs returns the customer
+    const checkout = await initialiseCheckout({ email: user.email, name: user.user_metadata?.full_name || "", amountMinor: amount, currency: course.currency, reference, successUrl: `${siteUrl}/payment/success?reference=${encodeURIComponent(reference)}`, cancelUrl: `${siteUrl}/payment/failed?reference=${encodeURIComponent(reference)}`, metadata: { order_id: reference, course_id: course.id, student_id: user.id } });
     await service.from("orders").update({ checkout_id: checkout.checkout_id, verification_response: { checkout_url: checkout.checkout_url, checkout_id: checkout.checkout_id, expires_at: checkout.expires_at }, updated_at: new Date().toISOString() }).eq("reference", reference);
     return Response.json({ authorizationUrl: checkout.checkout_url });
   } catch (error) {
+    console.error("payment.initialization_failed", { reference, message: error?.message || "unknown" });
     await service.from("orders").update({ payment_status: "failed", verification_response: { initialization_error: error.message }, updated_at: new Date().toISOString() }).eq("reference", reference);
     return Response.json({ error: error.message }, { status: 502 });
   }

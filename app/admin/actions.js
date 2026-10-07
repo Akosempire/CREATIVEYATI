@@ -10,7 +10,7 @@ import { clearDirectAdminSession } from "@/lib/admin-session";
 import { getStoredBachsSettings } from "@/lib/data/settings";
 import { canEncryptSecrets, encryptSecretSettings } from "@/lib/email/crypto";
 import { sendCourseConfirmation, sendEnquiryNotification, sendSettingsTestEmail } from "@/lib/email/delivery";
-import { recordRefund, requestRefund, testBachsConnection } from "@/lib/payments/provider";
+import { recordRefund, requestRefund, testBachsConnection, reconcileOrder, reconcilePendingOrders } from "@/lib/payments/provider";
 import { getCourseVideoSource } from "@/lib/course-video-source";
 import { checkExternalCourseVideo } from "@/lib/course-video-validation";
 import { getCoursePublishIssues } from "@/lib/data/course-publishing";
@@ -481,6 +481,33 @@ export async function refundOrder(formData) {
   const provider = await requestRefund({ chargeId: order.gateway_reference, reference: refundReference, reason: "Administrator-approved course refund" });
   await recordRefund({ ...provider, charge_id: order.gateway_reference, status: provider.status || "processing" }, actor);
   revalidatePath("/admin/orders"); revalidatePath("/admin/payments");
+}
+
+// Admins ask Bachs directly rather than trusting the local row: the provider is
+// the authority, and this is the sanctioned way to move a pending order.
+export async function verifyOrderPayment(formData) {
+  await admin();
+  const service = createSupabaseServiceClient();
+  const orderId = String(formData.get("orderId") || "");
+  const { data: order } = await service.from("orders").select("id,reference,checkout_id,gateway,payment_status").eq("id", orderId).maybeSingle();
+  if (!order) throw new Error("Order not found.");
+  const result = await reconcileOrder(order);
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/payments");
+  const params = new URLSearchParams({ checked: String(result.status || order.payment_status), reference: order.reference });
+  if (result.error) params.set("notice", result.error);
+  redirect(`/admin/orders?${params.toString()}`);
+}
+
+export async function reconcileStalePayments() {
+  await admin();
+  const report = await reconcilePendingOrders({ olderThanMinutes: 15, limit: 25 });
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/payments");
+  const settled = report.results.filter((item) => item.changed).length;
+  const stillPending = report.results.length - settled;
+  const params = new URLSearchParams({ checked: "batch", reference: `${settled} confirmed`, notice: settled ? `${settled} order${settled === 1 ? "" : "s"} confirmed with Bachs${stillPending ? `, ${stillPending} still awaiting confirmation` : ""}.` : report.checked ? `Bachs has not confirmed any of the ${report.checked} pending orders checked.` : "No pending payments older than 15 minutes." });
+  redirect(`/admin/orders?${params.toString()}`);
 }
 
 export async function grantCourseAccess(formData) {

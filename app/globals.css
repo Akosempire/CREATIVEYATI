@@ -1225,7 +1225,7 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 
 /* every rotating word shares one grid cell, so the track is as wide as the
    widest of them and the sentence never reflows as the words swap */
-.lh-rotator { display: inline-grid; vertical-align: baseline; color: var(--site-accent, #a3c900); animation: lh-fade .7s both; }
+.lh-rotator { display: inline-grid; vertical-align: baseline; color: var(--accent, #C6F000); animation: lh-fade .7s both; }
 .lh-rot-word { grid-area: 1 / 1; white-space: nowrap; opacity: 0; animation: lh-rotate 10s infinite both; }
 /* a vertical roll with no overlap: the outgoing word has fully left before the
    next one enters, so two lime words are never on screen at once */

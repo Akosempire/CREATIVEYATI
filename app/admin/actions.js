@@ -189,7 +189,13 @@ export async function reorderVideos(videoIds) {
   if (!Array.isArray(videoIds) || !videoIds.length || videoIds.length > 500 || new Set(videoIds).size !== videoIds.length || videoIds.some((id) => typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return { ok: false, error: "A complete valid project order is required." };
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("reorder_videos", { video_ids: videoIds });
-  if (error) return { ok: false, error: "The order could not be saved. Apply the latest database migration and try again." };
+  if (error) {
+    console.error("Portfolio reorder failed", { code: error.code || "unknown" });
+    if (["PGRST202", "42883", "42704"].includes(error.code)) return { ok: false, error: "Portfolio ordering needs a database update. Run production-portfolio-order-repair.sql in the live Supabase project, then try again." };
+    if (error.code === "42501" || error.message === "unauthorised") return { ok: false, error: "Your administrator verification has expired. Sign in again and verify your authenticator code before saving." };
+    if (error.code === "22023" || ["complete unique video order required", "unknown video in order"].includes(error.message)) return { ok: false, error: "The project list changed. Reload this page and rearrange the latest list of projects." };
+    return { ok: false, error: "Portfolio order could not be saved. Your changes are still here; please try again." };
+  }
   revalidatePath("/"); revalidatePath("/work"); revalidatePath("/admin/videos");
   return { ok: true };
 }

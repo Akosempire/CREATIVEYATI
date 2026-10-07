@@ -1,8 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
-// GoTrue drops an unlisted redirectTo and resends the token to the Site URL, so a recovery
-// link can arrive on any path. Forward it before the page renders and swallows the params.
+// Recover links falling back to the site URL without intercepting unrelated code parameters.
 function recoveryParams(request) {
   if (request.method !== "GET") return null;
   const requestUrl = new URL(request.url);
@@ -10,7 +9,8 @@ function recoveryParams(request) {
   if (path === "/auth/callback" || path.startsWith("/api/")) return null;
   const params = requestUrl.searchParams;
   const recovery = params.get("token_hash") && params.get("type") === "recovery";
-  if (!recovery && !params.has("code")) return null;
+  const authLanding = ["/", "/login", "/admin/login", "/reset-password", "/reset-password/update"].includes(path);
+  if (!recovery && !(authLanding && params.get("code"))) return null;
   return params;
 }
 

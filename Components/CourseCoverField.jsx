@@ -1,4 +1,5 @@
 "use client";
+import { Input } from "@/Components/FormControls";
 
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
@@ -80,16 +81,16 @@ export default function CourseCoverField({ course }) {
 
   const previewReady = /^https?:\/\//i.test(url);
   return <section className="cover-uploader course-cover-uploader form-wide" aria-busy={busy}>
-    <input type="hidden" name="courseCoverCleanupKeys" value={JSON.stringify(cleanupKeys)} />
-    <input type="hidden" name="coverWidth" value={dimensions.width} /><input type="hidden" name="coverHeight" value={dimensions.height} />
+    <Input type="hidden" name="courseCoverCleanupKeys" value={JSON.stringify(cleanupKeys)} />
+    <Input type="hidden" name="coverWidth" value={dimensions.width} /><Input type="hidden" name="coverHeight" value={dimensions.height} />
     <div className="cover-uploader-heading">
       <div><strong>Course cover image</strong><small>16:9 · recommended 1920 x 1080 · minimum 1280 x 720 · maximum 8MB</small></div>
       <div className="cover-uploader-actions"><button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{url ? "Upload replacement" : "Upload image"}</button></div>
     </div>
-    <input ref={inputRef} className="cover-file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => selectFile(event.target.files?.[0])} />
-    <label className="course-cover-url">Or paste an image URL<input type="url" name="coverImageUrl" value={url} onChange={(event) => changeUrl(event.target.value)} placeholder="https://…" required /></label>
-    {previewReady && <><Image className="cover-upload-preview" style={{ objectPosition: `${focalX}% ${focalY}%` }} src={url} width={960} height={540} sizes="(max-width: 780px) 90vw, 780px" unoptimized alt="Course cover preview" />{dimensions.width > 0 && <small className="media-facts">Stored at {dimensions.width} x {dimensions.height} in a fixed 16:9 frame</small>}<div className="course-cover-focal"><label>Horizontal focus<input type="range" name="coverFocalX" min="0" max="100" value={focalX} onChange={(event) => setFocalX(event.target.value)} /></label><label>Vertical focus<input type="range" name="coverFocalY" min="0" max="100" value={focalY} onChange={(event) => setFocalY(event.target.value)} /></label></div></>}
-    {!previewReady && <><input type="hidden" name="coverFocalX" value={focalX} /><input type="hidden" name="coverFocalY" value={focalY} /></>}
+    <Input ref={inputRef} className="cover-file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => selectFile(event.target.files?.[0])} />
+    <label className="course-cover-url">Or paste an image URL<Input type="url" name="coverImageUrl" value={url} onChange={(event) => changeUrl(event.target.value)} placeholder="https://…" required /></label>
+    {previewReady && <><Image className="cover-upload-preview" style={{ objectPosition: `${focalX}% ${focalY}%` }} src={url} width={960} height={540} sizes="(max-width: 780px) 90vw, 780px" unoptimized alt="Course cover preview" />{dimensions.width > 0 && <small className="media-facts">Stored at {dimensions.width} x {dimensions.height} in a fixed 16:9 frame</small>}<div className="course-cover-focal"><label>Horizontal focus<Input type="range" name="coverFocalX" min="0" max="100" value={focalX} onChange={(event) => setFocalX(event.target.value)} /></label><label>Vertical focus<Input type="range" name="coverFocalY" min="0" max="100" value={focalY} onChange={(event) => setFocalY(event.target.value)} /></label></div></>}
+    {!previewReady && <><Input type="hidden" name="coverFocalX" value={focalX} /><Input type="hidden" name="coverFocalY" value={focalY} /></>}
     {busy && <div className="upload-status"><span>{progress < 100 ? "Uploading and processing" : "Processing"}</span><progress max="100" value={progress}>{progress}%</progress></div>}
     {message && <p className="field-success">{message}</p>}
     {error && <p className="form-error">{error}</p>}

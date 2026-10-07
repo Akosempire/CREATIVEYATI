@@ -1,3 +1,5 @@
+import { PageHeader } from "./DashboardPageShell";
+import { MetricCard } from "./WorkspaceParts";
 import Link from "next/link";
 import WorkspaceChart from "./WorkspaceChart";
 import { WorkspaceIcon as Icon, ProgressBar } from "./WorkspaceParts";
@@ -19,10 +21,10 @@ export default function AdminWorkspace({ data, paymentsReady }) {
     { title: `${data.draftCourses} course drafts`, href: "/admin/courses", detail: "Finish modules, lessons, and publishing." },
   ];
   return <div className="admin-workspace live-workspace">
-    <header className="aw-header"><div><p className="aw-eyebrow">PLATFORM CONTROL CENTER</p><h1>Your workspace, organised.</h1><p>Admin overview · Your platform at a glance</p></div><div className="aw-header-tools"><span className="aw-sample">LIVE PLATFORM DATA</span><Link href="/admin/enquiries" className="aw-bell" aria-label="View enquiries"><Icon name="bell"/></Link></div></header>
+    <PageHeader title="Your workspace, organised." eyebrow="PLATFORM CONTROL CENTER" description="Admin overview · Your platform at a glance" actions={<><span className="aw-sample">LIVE PLATFORM DATA</span><Link href="/admin/enquiries" className="aw-bell" aria-label="View enquiries"><Icon name="bell"/></Link></>}/>
     {!paymentsReady && <Link className="dashboard-alert" href="/admin/payments"><strong>Payments need configuration</strong><span>Review payment settings before accepting purchases.</span></Link>}
     <div className="aw-summary-line"><span>Updated when you open this page</span><span>{data.month} · Africa/Lagos</span></div>
-    <section className="aw-metrics" aria-label="Platform metrics">{metrics.map(item => <Link href={item.href} className={`aw-metric ${item.gold ? "aw-gold" : ""}`} key={item.label}><span className="aw-metric-label">{item.label}<Icon name={item.icon}/></span><strong>{item.value}</strong><span className="aw-metric-caption">{item.caption}</span></Link>)}</section>
+    <section className="dashboard-metrics" aria-label="Platform metrics">{metrics.map(item => <MetricCard key={item.label} {...item}/>)}</section>
     <div className="aw-layout"><div className="aw-analytics-column">
       <section className="aw-card aw-spotlight"><div className="aw-spotlight-copy"><p className="aw-eyebrow">COURSE SPOTLIGHT</p><h2>{course?.title || "Your next great course"}</h2><p>{course ? `${course.lessons} published lessons · ${course.enrolled} active enrolments` : "Build your first course, one module at a time."}</p>{course && <><div className="aw-progress-label"><span>Average learner progress</span><strong>{course.average}%</strong></div><ProgressBar value={course.average} label="Average learner progress"/></>}<div className="aw-spotlight-bottom"><Link className="aw-primary" href={course ? `/admin/courses/${course.id}/edit` : "/admin/courses/new"}>{course ? "View course" : "Create course"}<Icon name="arrow"/></Link></div></div><div className="aw-course-art" aria-hidden="true"><div className="aw-art-grid"/><div className="aw-art-frame"><span>CREATE / TEACH</span><div className="aw-art-sun"/><div className="aw-art-mountain"/></div></div></section>
       <WorkspaceChart series={data.revenue} title="Revenue Overview" money/>

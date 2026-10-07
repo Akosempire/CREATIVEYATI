@@ -1,3 +1,4 @@
+import DashboardUiReview from "@/scripts/DashboardUiReview";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import AdminShell from "@/Components/AdminShell";
@@ -16,6 +17,7 @@ export default async function DesignReview({searchParams}) {
   if (process.env.NODE_ENV !== "development") notFound();
   const { view = "documents" } = await searchParams;
   async function noop() { "use server"; }
+  if (view === "ui-admin" || view === "ui-student") return view === "ui-admin" ? <AdminShell logout={noop}><DashboardUiReview action={noop}/></AdminShell> : <StudentShell site={{creatorName:"AI VIDEO CREATOR"}} user={{email:"sample@example.com"}} signOut={noop}><DashboardUiReview student action={noop}/></StudentShell>;
   if (view.startsWith("live-admin") || view.startsWith("live-student")) {
     const fixture = dashboardFixtures(view.endsWith("empty"));
     const notice = <p role="note">Development fixture · sample records for layout testing only.</p>;

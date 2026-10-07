@@ -1,10 +1,11 @@
 "use client";
+import { Input } from "@/Components/FormControls";
 import { useActionState } from "react";
 import { enrollAuthenticator, verifyAuthenticator } from "@/app/admin/mfa/actions";
 import SubmitButton from "@/Components/SubmitButton";
 function Verify({factorId}) {
  const [state,action]=useActionState(verifyAuthenticator,{});
- return <form className="admin-form fm-auth-form" action={action}><input name="factorId" type="hidden" value={factorId}/><label>Authenticator code<input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/></label>{state.error&&<p className="form-error" role="alert">{state.error}</p>}<SubmitButton pendingLabel="Verifying...">Verify and continue</SubmitButton></form>;
+ return <form className="admin-form fm-auth-form" action={action}><Input name="factorId" type="hidden" value={factorId}/><label>Authenticator code<Input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/></label>{state.error&&<p className="form-error" role="alert">{state.error}</p>}<SubmitButton pendingLabel="Verifying...">Verify and continue</SubmitButton></form>;
 }
 export default function AuthenticatorSetup({factorId}) {
  const [state,action,pending]=useActionState(enrollAuthenticator,{});

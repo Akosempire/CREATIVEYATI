@@ -1,3 +1,13 @@
+## Dashboard UI consistency - 7 October 2026
+
+- [x] Shared admin/student page shell, headers, metrics and stable selected sidebar geometry.
+- [x] Shared table controls, status treatment, form controls, buttons and confirmation styling.
+- [x] Existing settings and website content routes grouped for navigation.
+- [x] Desktop/laptop/tablet/mobile component checks, build and lint (existing image warnings only).
+- [ ] Signed-in production QA of real CRUD, uploads, payments and course completion with account sessions.
+
+Audit and reuse guidance: [DASHBOARD-CONSISTENCY.md](DASHBOARD-CONSISTENCY.md).
+
 ## 7 October 2026 ? dashboard integration
 
 The redesigned layouts now render on the authenticated `/admin` and `/learn` routes through `AdminWorkspace` and `StudentWorkspace`. The `/design-review` samples remain development-only and are not the production entry points.

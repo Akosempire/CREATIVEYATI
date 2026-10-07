@@ -1,4 +1,6 @@
 "use client";
+import SidebarItem from "./SidebarItem";
+import DashboardPageShell from "./DashboardPageShell";
 
 import { useRef } from "react";
 import useDashboardShell from "@/Components/useDashboardShell";
@@ -39,10 +41,7 @@ export default function StudentShell({ site, user, signOut, children }) {
       <nav aria-label="Student navigation">
         {LINKS.map((link) => {
           const active = isActive(link.href);
-          return <Link className={active ? "is-active" : undefined} href={link.href} key={link.href} title={link.label} aria-current={active ? "page" : undefined}>
-            <AdminIcon name={link.icon} />
-            <span>{link.label}</span>
-          </Link>;
+          return <SidebarItem href={link.href} key={link.href} label={link.label} icon={link.icon} active={active}/>;
         })}
       </nav>
       {user?.email ? <p className="admin-shell-email">{user.email}</p> : null}
@@ -50,7 +49,7 @@ export default function StudentShell({ site, user, signOut, children }) {
     </aside>
     <button className="admin-nav-scrim" type="button" onClick={toggleNav} aria-label="Close navigation" tabIndex={-1} />
     <button className="admin-nav-trigger" type="button" onClick={toggleNav} aria-expanded="false" aria-label="Open navigation">MENU</button>
-    <section className="admin-main">{children}</section>
+    <main className="admin-main"><DashboardPageShell>{children}</DashboardPageShell></main>
     <nav className="student-bottom-nav" aria-label="Learning shortcuts">{LINKS.map(link => <Link key={link.href} href={link.href} aria-current={isActive(link.href) ? "page" : undefined}><AdminIcon name={link.icon}/><span>{link.label}</span></Link>)}</nav>
   </div>;
 }

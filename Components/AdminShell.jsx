@@ -1,4 +1,5 @@
 "use client";
+import DashboardPageShell from "./DashboardPageShell";
 
 import { useRef } from "react";
 import useDashboardShell from "@/Components/useDashboardShell";
@@ -44,6 +45,6 @@ export default function AdminShell({ logout, children }) {
     {/* a real element, so tapping the scrim actually closes the sheet */}
     <button className="admin-nav-scrim" type="button" onClick={toggleNav} aria-label="Close navigation" tabIndex={-1} />
     <button className="admin-nav-trigger" type="button" onClick={toggleNav} aria-expanded="false" aria-label="Open navigation">☰</button>
-    <section className="admin-main">{children}</section>
+    <main className="admin-main"><DashboardPageShell>{children}</DashboardPageShell></main>
   </div>;
 }

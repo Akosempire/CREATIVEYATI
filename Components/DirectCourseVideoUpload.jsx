@@ -1,4 +1,5 @@
 "use client";
+import { Input } from "@/Components/FormControls";
 
 import { useRef, useState } from "react";
 
@@ -107,19 +108,19 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
   }
 
   return <section className="direct-video-upload form-wide" aria-busy={busy}>
-    <input type="hidden" name="storageKey" value={asset.storageKey || ""} />
-    <input type="hidden" name="videoWidth" value={asset.width || ""} />
-    <input type="hidden" name="videoHeight" value={asset.height || ""} />
-    <input type="hidden" name="durationSeconds" value={asset.durationSeconds || ""} />
-    <input type="hidden" name="orientation" value={asset.orientation || "landscape"} />
-    <input type="hidden" name="aspectRatio" value={asset.aspectRatio || 16 / 9} />
-    <input type="hidden" name="processingStatus" value={asset.processingStatus || "pending"} />
-    <input type="hidden" name="obsoleteStorageKey" value={obsoleteKey} />
+    <Input type="hidden" name="storageKey" value={asset.storageKey || ""} />
+    <Input type="hidden" name="videoWidth" value={asset.width || ""} />
+    <Input type="hidden" name="videoHeight" value={asset.height || ""} />
+    <Input type="hidden" name="durationSeconds" value={asset.durationSeconds || ""} />
+    <Input type="hidden" name="orientation" value={asset.orientation || "landscape"} />
+    <Input type="hidden" name="aspectRatio" value={asset.aspectRatio || 16 / 9} />
+    <Input type="hidden" name="processingStatus" value={asset.processingStatus || "pending"} />
+    <Input type="hidden" name="obsoleteStorageKey" value={obsoleteKey} />
     <div className="upload-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); upload(event.dataTransfer.files?.[0]); }}>
       <strong>{asset.storageKey ? "Uploaded lesson video" : "Drop an MP4, WebM or MOV here"}</strong>
       <small>Uploaded directly to private storage · maximum 2GB</small>
       <div className="row-actions"><button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{asset.storageKey ? "Replace video" : "Choose video"}</button>{busy && <button type="button" onClick={() => requestRef.current?.abort()}>Cancel upload</button>}{asset.storageKey && !busy && <button type="button" onClick={remove}>Remove video</button>}</div>
-      <input ref={inputRef} className="cover-file-input" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => upload(event.target.files?.[0])} />
+      <Input ref={inputRef} className="cover-file-input" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => upload(event.target.files?.[0])} />
     </div>
     {busy && <div className="upload-status"><span>{status}</span><progress max="100" value={progress}>{progress}%</progress></div>}
     {!busy && status && <p className="field-success">{status}</p>}

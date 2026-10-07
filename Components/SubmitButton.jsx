@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "./FormControls";
 
 import { usePendingToast } from "./ToastHost";
 import { useFormStatus } from "react-dom";
@@ -8,7 +9,7 @@ import { useFormStatus } from "react-dom";
 export default function SubmitButton({ children, pendingLabel = "Working…", className = "button", disabled = false }) {
   const { pending } = useFormStatus();
   usePendingToast(pending, pendingLabel);
-  return <button className={className} type="submit" disabled={pending || disabled} aria-busy={pending || undefined}>
+  return <Button className={className} type="submit" disabled={pending || disabled} aria-busy={pending || undefined}>
     {pending ? pendingLabel : children}
-  </button>;
+  </Button>;
 }

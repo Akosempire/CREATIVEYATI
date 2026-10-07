@@ -1,7 +1,6 @@
 "use client";
-import Link from "next/link";
+import SidebarItem from "./SidebarItem";
 import { usePathname } from "next/navigation";
-import { AdminIcon } from "@/Components/Icons";
 const groups=[
  ["Workspace",[["/admin","Overview","home"],["/admin/activity","Activity log","folder"]]],
  ["Studio",[["/admin/videos","Projects","video"],["/admin/categories","Categories","folder"],["/admin/enquiries","Enquiries","mail"]]],
@@ -14,5 +13,5 @@ export default function AdminNavigation() {
  const pathname=usePathname();
  const paths=groups.flatMap(([,links])=>links.map(([href])=>href));
  const current=paths.filter(href=>pathname===href||(href!=="/admin"&&pathname.startsWith(href+"/"))).sort((a,b)=>b.length-a.length)[0];
- return <nav aria-label="Administration">{groups.map(([title,links])=><div className="admin-nav-group" key={title}><p className="admin-nav-label">{title}</p>{links.map(([href,label,icon])=><Link key={href} href={href} title={label} className={current===href?"is-active":undefined} aria-current={current===href?"page":undefined}><AdminIcon name={icon}/><span>{label}</span></Link>)}</div>)}<Link href="/" target="_blank" rel="noreferrer" title="View website"><AdminIcon name="home"/><span>View website</span></Link></nav>;
+ return <nav aria-label="Administration">{groups.map(([title,links])=><div className="admin-nav-group" key={title}><p className="admin-nav-label">{title}</p>{links.map(([href,label,icon])=><SidebarItem key={href} href={href} label={label} icon={icon} active={current===href}/>)}</div>)}<SidebarItem href="/" target="_blank" rel="noreferrer" label="View website" icon="home"/></nav>;
 }

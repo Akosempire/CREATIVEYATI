@@ -21,7 +21,7 @@ export const metadata = {
 //
 // The gallery drifts left continuously like the carousel did. The strip is
 // rendered twice and the track translates by exactly half its width, so the loop
-// is seamless. Cards take their height from the image, so nothing is cropped.
+// is seamless. Cards share a height and retain each image's aspect ratio.
 const WASHES = [
   "linear-gradient(170deg, #cdc7bd 0%, #8f877c 100%)",
   "linear-gradient(170deg, #d7d2c8 0%, #a49c90 100%)",
@@ -77,7 +77,6 @@ export default async function Home() {
   // every published project drifts past, not a selection of them: upload more
   // and they join the loop without a code change
   const cards = videos || [];
-  const centre = (cards.length - 1) / 2;
 
   // the showreel leads with real work; local/empty catalogues still need a frame
   const reelStill = stillFor(cards[0]) || "/img12.jpg";
@@ -86,12 +85,10 @@ export default async function Home() {
   const floatB = stillFor(cards[2]) || "/img11.png";
 
   function Card({ video, index, keyPrefix }) {
-    const distance = Math.abs(index - centre);
     const still = stillFor(video);
     return <figure
       className="lh-card"
       key={`${keyPrefix}-${video.id || index}`}
-      style={{ "--fan-i": index, "--fan-y": `${Math.round(distance * 22)}px` }}
     >
       {still
         ? <img src={still} alt={video.title || "Studio work"} loading="lazy" />

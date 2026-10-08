@@ -1507,6 +1507,17 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 /* later longhand overrides the shorthand's 60s, so the speed tracks the count */
 .portfolio-home .lh-marquee { animation-duration: var(--marquee-duration, 60s); }
 
+/* a level ribbon: retain image proportions without stepped offsets or lifts */
+.portfolio-home .lh-strip { align-items: center; }
+.portfolio-home .lh-strip .lh-card {
+  width: auto; height: clamp(180px, 24vw, 340px); margin: 0;
+  animation: none; translate: none; scale: none; transform: none;
+  transition: box-shadow .32s ease;
+}
+.portfolio-home .lh-strip .lh-card img { width: auto; max-width: none; height: 100%; }
+.portfolio-home .lh-strip .lh-card-wash { width: auto; height: 100%; }
+.portfolio-home .lh-strip .lh-card:hover { transform: none; }
+
 /* ---- dashboard design tokens (phase 1a) ---- */
 /* Ported from the KORO/Waya settings-dashboard reference so the shell and page
    patterns are built against one vocabulary instead of ad-hoc values. Additive

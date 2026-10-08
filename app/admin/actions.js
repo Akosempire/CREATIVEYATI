@@ -1,4 +1,5 @@
 "use server";
+import { couponDate } from "@/lib/coupon-dates";
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -81,7 +82,7 @@ export async function login(formData) {
   if (error) redirect("/admin/login?error=Invalid+email+or+password");
   const { getAdminIdentity } = await import("@/lib/supabase/server");
   if (!await getAdminIdentity()) { await supabase.auth.signOut(); redirect("/admin/login?error=Administrator+access+is+required"); }
-  redirect("/admin/mfa");
+  redirect("/admin");
 }
 export async function logout() { await clearDirectAdminSession(); const supabase = await createSupabaseServerClient(); await supabase?.auth.signOut(); redirect("/admin/login"); }
 function jsonObject(value) { try { const parsed = JSON.parse(value || "{}"); return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {}; } catch { return {}; } }
@@ -460,7 +461,13 @@ export async function saveCarouselSettings(formData) {
 }
 
 export async function saveCoupon(formData) {
-  await admin(); const supabase = await createSupabaseServerClient(); const code = String(formData.get("code") || "").trim().toUpperCase(); const value = Number(formData.get("discountValue")); const type = String(formData.get("discountType") || "percent"); if (!code || !Number.isFinite(value) || value <= 0 || (type === "percent" && value > 100)) redirect(`/admin/coupons?error=${encodeURIComponent("Enter a coupon code and a valid discount. Percent discounts cannot exceed 100.")}`); const { error } = await supabase.from("coupons").insert({ code, discount_type: type, discount_value: value, currency: String(formData.get("currency") || "NGN").toUpperCase(), max_redemptions: Number(formData.get("maxRedemptions")) || null, starts_at: String(formData.get("startsAt") || "") || null, expires_at: String(formData.get("expiresAt") || "") || null, enabled: formData.get("enabled") === "on" }); if (error) redirect(`/admin/coupons?error=${encodeURIComponent("The coupon could not be created. Make sure its code is unique.")}`); revalidatePath("/admin/coupons"); redirect("/admin/coupons?saved=created");
+  await admin();
+  let startsAt, expiresAt;
+  try {
+    startsAt = couponDate(formData.get("startsAt")); expiresAt = couponDate(formData.get("expiresAt"));
+    if (startsAt && expiresAt && new Date(expiresAt) <= new Date(startsAt)) throw new Error("Coupon expiry must be after its start date.");
+  } catch (error) { redirect("/admin/coupons?error=" + encodeURIComponent(error.message)); }
+  const supabase = await createSupabaseServerClient(); const code = String(formData.get("code") || "").trim().toUpperCase(); const value = Number(formData.get("discountValue")); const type = String(formData.get("discountType") || "percent"); if (!code || !Number.isFinite(value) || value <= 0 || (type === "percent" && value > 100)) redirect(`/admin/coupons?error=${encodeURIComponent("Enter a coupon code and a valid discount. Percent discounts cannot exceed 100.")}`); const { error } = await supabase.from("coupons").insert({ code, discount_type: type, discount_value: value, currency: String(formData.get("currency") || "NGN").toUpperCase(), max_redemptions: Number(formData.get("maxRedemptions")) || null, starts_at: startsAt, expires_at: expiresAt, enabled: formData.get("enabled") === "on" }); if (error) redirect(`/admin/coupons?error=${encodeURIComponent("The coupon could not be created. Make sure its code is unique.")}`); revalidatePath("/admin/coupons"); redirect("/admin/coupons?saved=created");
 }
 
 export async function toggleCoupon(formData) { await admin(); const supabase = await createSupabaseServerClient(); const { error } = await supabase.from("coupons").update({ enabled: formData.get("enabled") === "true", updated_at: new Date().toISOString() }).eq("id", String(formData.get("id") || "")); if (error) redirect(`/admin/coupons?error=${encodeURIComponent("The coupon status could not be changed.")}`); revalidatePath("/admin/coupons"); redirect("/admin/coupons?saved=updated"); }

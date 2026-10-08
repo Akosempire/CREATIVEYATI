@@ -21,8 +21,8 @@ export default async function CouponsPage({ searchParams }) {
       <label>Discount value<Input type="number" name="discountValue" min="0.01" step="0.01" required /></label>
       <label>Currency<Input name="currency" defaultValue="NGN" maxLength="3" required /></label>
       <label>Maximum redemptions<Input type="number" name="maxRedemptions" min="1" /></label>
-      <label>Starts at<Input type="datetime-local" name="startsAt" /></label>
-      <label>Expires at<Input type="datetime-local" name="expiresAt" /></label>
+      <label>Starts at (Lagos, UTC+1)<Input type="datetime-local" name="startsAt" /></label>
+      <label>Expires at (Lagos, UTC+1)<Input type="datetime-local" name="expiresAt" /></label>
       <label className="check-label"><Input type="checkbox" name="enabled" defaultChecked />Enabled</label>
       <Button className="button">Create coupon</Button>
     </form>

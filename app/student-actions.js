@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseAuthClient, createSupabaseServiceClient, getStudentUser } from "@/lib/supabase/server";
@@ -11,6 +12,8 @@ import { ensureStudentProfile } from "@/lib/auth/student-profile";
 export async function resendStudentVerification(formData) {
   const supabase = await createSupabaseAuthClient();
   const next = safeNext(formData.get("next"));
+  const email = String(formData.get("email") || "").trim();
+  (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
   if (!supabase) redirect("/verify-email?error=Email+verification+is+temporarily+unavailable.");
   const { error } = await supabase.auth.resend({ type: "signup", email: String(formData.get("email") || "").trim(), options: { emailRedirectTo: site + "/auth/callback?next=" + encodeURIComponent(next) } });
@@ -25,8 +28,17 @@ export async function verifyStudentEmail(formData) {
   const supabase = await createSupabaseAuthClient();
   const next = safeNext(formData.get("next"));
   if (!supabase) redirect("/login?error=Sign-in+is+unavailable");
-  const { data, error } = await supabase.auth.verifyOtp({ email: String(formData.get("email") || "").trim(), token: String(formData.get("token") || "").trim(), type: "signup" });
-  if (error) redirect("/verify-email?next=" + encodeURIComponent(next) + "&error=The+code+is+invalid+or+expired.");
+  const email = String(formData.get("email") || "").trim();
+  const token = String(formData.get("token") || "").replace(/\s/g, "");
+  (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
+  if (!/^[0-9]{6,10}$/.test(token)) redirect("/verify-email?next="+encodeURIComponent(next)+"&error=Enter+the+code+from+your+latest+verification+email.");
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) {
+    console.error("Signup code verification failed", {code:error.code,status:error.status});
+    const message = error.status===429 ? "Too many attempts. Wait a moment before trying again." : error.code==="otp_expired" ? "This code is expired or already used. Request a new code below and use only the latest email." : "The code could not be verified. Check the email address and latest code, then try again.";
+    redirect("/verify-email?next="+encodeURIComponent(next)+"&error="+encodeURIComponent(message));
+  }
+  (await cookies()).delete("avc_signup_email");
   await ensureStudentProfile(data.user);
   redirect(next);
 }
@@ -37,7 +49,9 @@ export async function studentSignIn(formData) {
   if (!supabase) redirect("/login?error=Student+sign-in+is+not+configured");
   const next = safeNext(formData.get("next"));
   const { data, error } = await supabase.auth.signInWithPassword({ email: String(formData.get("email") || "").trim(), password: String(formData.get("password") || "") });
-  if (error?.code === "email_not_confirmed") redirect("/verify-email?next=" + encodeURIComponent(next));
+  if (error?.code === "email_not_confirmed") {
+    await resendStudentVerification(formData);
+  }
   if (error) redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}&next=${encodeURIComponent(next)}`);
   await ensureStudentProfile(data.user);
   redirect(next);
@@ -56,7 +70,8 @@ export async function studentRegister(formData) {
   if (error) redirect(`/register?next=${encodeURIComponent(next)}&error=Registration+could+not+be+completed.+Please+try+again.`);
   // Profile data is written only after authentication, never from an unconfirmed signup result.
   if (data.session) { await ensureStudentProfile(data.user); redirect(next); }
-  redirect(`/verify-email?next=${encodeURIComponent(next)}`);
+  (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
+  redirect(`/verify-email?next=${encodeURIComponent(next)}&message=Check+your+email+for+your+verification+code.`);
 }
 
 export async function studentSignOut() {

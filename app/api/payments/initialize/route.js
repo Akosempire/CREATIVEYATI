@@ -1,6 +1,6 @@
 import { getStudentUser, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { createOrderReference, initialiseCheckout } from "@/lib/payments/provider";
-import { quoteCourse, applyCoupon, QuoteError } from "@/lib/payments/quote";
+import { quoteCourse, applyCoupon, QuoteError, pendingOrderMatchesQuote } from "@/lib/payments/quote";
 import { sendCourseConfirmation } from "@/lib/email/delivery";
 
 export async function POST(request) {
@@ -14,17 +14,18 @@ export async function POST(request) {
   const { course } = quote;
   const { data: existing } = await service.from("enrolments").select("id").eq("student_id", user.id).eq("course_id", course.id).eq("active", true).maybeSingle();
   if (existing) return Response.json({ redirectUrl: `/learn/${course.slug}` });
+  try { quote = await applyCoupon(quote, couponCode); } catch (error) { return Response.json({ error: error instanceof QuoteError ? error.message : "This coupon could not be applied." }, { status: error instanceof QuoteError ? error.status : 400 }); }
   const pendingSince = Date.now() - 15 * 60 * 1000;
-  const { data: pendingOrder } = await service.from("orders").select("id,reference,created_at,verification_response").eq("student_id", user.id).eq("course_id", course.id).eq("payment_status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const { data: pendingOrder } = await service.from("orders").select("id,reference,created_at,verification_response,amount_minor,currency,coupon_id").eq("student_id", user.id).eq("course_id", course.id).eq("payment_status", "pending").order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (pendingOrder) {
+    const sameQuote = pendingOrderMatchesQuote(pendingOrder, quote);
     const checkoutUrl = pendingOrder.verification_response?.checkout_url; const expiresAt = new Date(pendingOrder.verification_response?.expires_at || 0).getTime();
-    if (checkoutUrl && expiresAt > Date.now()) return Response.json({ authorizationUrl: checkoutUrl });
-    if (!checkoutUrl && new Date(pendingOrder.created_at).getTime() > pendingSince) return Response.json({ error: "A checkout is already being prepared. Try again in a moment." }, { status: 409 });
+    if (sameQuote && checkoutUrl && expiresAt > Date.now()) return Response.json({ authorizationUrl: checkoutUrl });
+    if (sameQuote && !checkoutUrl && new Date(pendingOrder.created_at).getTime() > pendingSince) return Response.json({ error: "A checkout is already being prepared. Try again in a moment." }, { status: 409 });
     await service.from("orders").update({ payment_status: "abandoned", updated_at: new Date().toISOString() }).eq("id", pendingOrder.id).eq("payment_status", "pending");
   }
   // revalidated here so the order amount never comes from the browser, even if
   // the checkout screen computed its own total
-  try { quote = await applyCoupon(quote, couponCode); } catch (error) { return Response.json({ error: error instanceof QuoteError ? error.message : "This coupon could not be applied." }, { status: error instanceof QuoteError ? error.status : 400 }); }
   const { amount, discount, coupon, original } = quote; const reference = createOrderReference();
   const { error: orderError } = await service.from("orders").insert({ reference, student_id: user.id, course_id: course.id, amount_minor: amount, original_amount_minor: original, discount_minor: original - amount, currency: course.currency, gateway: amount === 0 ? "free" : "bachs", coupon_id: coupon?.id || null });
   if (orderError) return Response.json({ error: "The order could not be created." }, { status: 500 });

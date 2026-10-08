@@ -29,10 +29,11 @@ export default async function CoursePage({ params }) {
     : price === 0 ? { href: `/checkout/${course.id}`, label: "Enrol free" }
     : { href: `/checkout/${course.id}`, label: "Enrol in course" };
 
-  return <main className="public-page"><PublicHeader site={site} current="/courses" /><article className="course-detail public-note">
+  return <main className="public-page learning-store"><PublicHeader site={site} current="/courses" /><article className="course-detail public-note learning-detail">
+    <nav className="learning-breadcrumb" aria-label="Breadcrumb"><Link href="/courses">Courses</Link><span aria-hidden="true">/</span><span>{course.title}</span></nav>
     <div className="course-hero">
       <div className="course-hero-info">
-        <Link className="inline-link course-back" href="/courses">Back to courses</Link>
+
         <p className="eyebrow">{course.category || "COURSE"}</p>
         <h1 className="page-title">{course.title}</h1>
         <p className="public-lede">{course.shortDescription}</p>
@@ -46,8 +47,9 @@ export default async function CoursePage({ params }) {
       </div>
 
       <aside className="course-enrol" aria-label="Enrolment">
-        <Image src={course.coverImageUrl} style={{ objectPosition: `${course.coverFocalX}% ${course.coverFocalY}%` }} alt={`${course.title} cover`} width={960} height={540} sizes="(max-width: 1024px) 90vw, 480px" unoptimized />
+        {course.coverImageUrl ? <Image src={course.coverImageUrl} style={{ objectPosition: `${course.coverFocalX}% ${course.coverFocalY}%` }} alt={`${course.title} cover`} width={960} height={540} sizes="(max-width: 1024px) 90vw, 480px" unoptimized /> : <div className="course-cover-placeholder">YOUR NEXT CHAPTER.</div>}
         <div className="course-enrol-body">
+          <p className="eyebrow">YOUR NEXT CREATIVE STEP</p>
           <strong className="course-price">{price === 0 ? "Free" : formatMoney(price, course.currency)}</strong>
           <Link className="button" href={cta.href}>{cta.label}</Link>
           <ul className="course-enrol-facts">
@@ -59,16 +61,18 @@ export default async function CoursePage({ params }) {
       </aside>
     </div>
 
+    <nav className="course-section-nav" aria-label="Course sections"><a href="#course-overview">Overview</a><a href="#course-curriculum">Curriculum</a>{course.learningOutcomes.length>0&&<a href="#course-outcomes">What you&apos;ll learn</a>}</nav>
+    <div className="course-reading">
     {course.promotionalEmbedUrl && <section className="course-promo-video"><h2>Course preview</h2><CourseVideoPlayer lesson={{ id: "promo", title: `${course.title} promotional video`, sourceType: course.promotionalVideoSource, embedUrl: course.promotionalEmbedUrl, orientation: course.promotionalOrientation, aspectRatio: course.promotionalAspectRatio }} /></section>}
-    <section className="course-description"><h2>About this course</h2>{course.description.split(/\n\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>
-    {course.learningOutcomes.length > 0 && <section className="course-outcomes"><h2>What you will learn</h2><ul>{course.learningOutcomes.map((item, index) => <li key={index}>{item}</li>)}</ul></section>}
+    <section id="course-overview" className="course-description"><h2>About this course</h2>{course.description.split(/\n\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</section>
+    {course.learningOutcomes.length > 0 && <section id="course-outcomes" className="course-outcomes"><h2>What you will learn</h2><ul>{course.learningOutcomes.map((item, index) => <li key={index}>{item}</li>)}</ul></section>}
     {course.requirements.length > 0 && <section className="course-requirements"><h2>Requirements</h2><ul>{course.requirements.map((item, index) => <li key={index}>{item}</li>)}</ul></section>}
     {course.targetAudience.length > 0 && <section className="course-audience"><h2>Who this is for</h2><ul>{course.targetAudience.map((item, index) => <li key={index}>{item}</li>)}</ul></section>}
-    <section className="course-curriculum"><h2>Curriculum</h2>
+    <section id="course-curriculum" className="course-curriculum"><h2>Curriculum</h2>
       {modules.length ? <div className="curriculum-modules">
-        {modules.map((section) => <details className="curriculum-module" key={section.id} open={modules.length === 1}>
+        {modules.map((section, index) => <details className="curriculum-module" key={section.id} open={modules.length === 1}>
           <summary>
-            <span className="curriculum-module-title">{section.title}</span>
+            <span className="curriculum-module-title"><span className="module-number">{String(index+1).padStart(2,"0")}</span>{section.title}</span>
             <span className="curriculum-module-side">
               <span className="curriculum-module-meta">{section.lessons.length} lesson{section.lessons.length === 1 ? "" : "s"}</span>
               <span className="curriculum-module-toggle" aria-hidden="true" />
@@ -88,5 +92,6 @@ export default async function CoursePage({ params }) {
       </div> : <p>Curriculum details will be published soon.</p>}
     </section>
     {course.materials?.length > 0 && <section className="course-preview-materials"><h2>Preview materials</h2>{course.materials.map((resource) => <p key={resource.id}><a className="inline-link" href={`/api/learn/resources/${resource.id}`} target="_blank" rel="noreferrer">{resource.title}</a>{resource.description && <small>{resource.description}</small>}</p>)}</section>}
+    </div>
   </article><PublicFooter site={site} socialLinks={socialLinks} /></main>;
 }

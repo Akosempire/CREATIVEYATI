@@ -9,7 +9,7 @@ export default function CourseCard({ course }) {
   const meta = [course.estimatedDuration, course.difficulty].filter(Boolean);
   return <article className="course-card">
     <Link href={`/courses/${course.slug}`} aria-label={`View course: ${course.title}`}>
-      <Image src={course.coverImageUrl} alt={`${course.title} cover`} width={640} height={360} sizes="(max-width: 767px) 90vw, (max-width: 1024px) 44vw, 30vw" unoptimized />
+      {course.coverImageUrl ? <Image style={{objectPosition: `${course.coverFocalX ?? 50}% ${course.coverFocalY ?? 50}%`}} src={course.coverImageUrl} alt={`${course.title} cover`} width={640} height={360} sizes="(max-width: 767px) 90vw, (max-width: 1024px) 44vw, 30vw" unoptimized /> : <div className="course-cover-placeholder" aria-hidden="true">CREATE.<br/>YOUR NEXT CHAPTER.</div>}
       <div>
         <span>{course.category || course.difficulty}</span>
         <h2>{course.title}</h2>

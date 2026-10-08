@@ -54,7 +54,7 @@ export default function CheckoutForm({ courseId, email, currency, amountMinor, i
         <input id="coupon-code" value={code} onChange={(event) => setCode(event.target.value)} autoComplete="off" spellCheck="false" disabled={status === "applying"} placeholder="Enter code" />
         <button type="button" className="button button-secondary" onClick={apply} disabled={status === "applying" || !typed}>{status === "applying" ? "Checking…" : "Apply"}</button>
       </span>
-      <small>Discounts are confirmed on the server before the total changes.</small>
+      <small>Have a discount code? Apply it to update your total.</small>
       {message && <p className={status === "error" ? "form-error" : "checkout-coupon-note"} role="status">{message}</p>}
       {applied && <button type="button" className="checkout-coupon-remove" onClick={remove}>Remove {applied.code}</button>}
       {awaitingApply && !message && <p className="checkout-coupon-note" role="status">Apply this code before continuing.</p>}

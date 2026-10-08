@@ -25,11 +25,11 @@ export default async function CheckoutPage({params}) {
    {label:"Start learning",state:"upcoming"},
  ];
 
- return <main className="public-page"><PublicHeader site={site}/><div className="checkout-layout">
+ return <main className="public-page learning-store learning-checkout"><PublicHeader site={site}/><header className="checkout-heading learning-container"><Link className="inline-link" href={"/courses/"+course.slug}>&larr; Back to course</Link><p className="eyebrow">ONE STEP CLOSER TO YOUR NEXT CHAPTER</p><h1>Make it yours.</h1><p>Your next creative project starts here.</p></header><div className="checkout-layout">
   <aside className="checkout-summary">
-    <p className="eyebrow">YOUR COURSE</p>
+    <p className="eyebrow">01 / YOUR COURSE</p>
     {course.coverImageUrl&&<Image src={course.coverImageUrl} alt={`${course.title} cover`} width={640} height={360} unoptimized/>}
-    <h1>{course.title}</h1>
+    <h2>{course.title}</h2>
     <p className="checkout-summary-copy">{course.shortDescription||course.description}</p>
     <p className="checkout-summary-meta">{modules.length} module{modules.length===1?"":"s"} / {lessons.length} lesson{lessons.length===1?"":"s"}</p>
     <Link className="inline-link" href={"/courses/"+course.slug}>Review curriculum</Link>
@@ -42,8 +42,8 @@ export default async function CheckoutPage({params}) {
 
   <section className="checkout-panel">
     <ol className="checkout-stepper">{steps.map((step,index)=><li key={step.label} data-state={step.state} aria-current={step.state==="current"?"step":undefined}><span className="checkout-stepper-mark" aria-hidden="true">{step.state==="done"?"✓":index+1}</span><span>{step.label}</span></li>)}</ol>
-    <h2>Complete your enrolment</h2>
-    <p className="checkout-lede">Review your details and complete payment to access your course.</p>
+    <p className="eyebrow">02 / YOUR ENROLMENT</p><h2>Ready for your next chapter?</h2>
+    <p className="checkout-lede">{price===0?"Confirm your email below to enrol in this free course.":"Confirm your email, review the total, and continue to secure payment."}</p>
     {!verified
       ? <p className="form-error"><Link href={"/verify-email?next="+encodeURIComponent("/checkout/"+courseId)}>Verify your email to continue.</Link></p>
       : <CheckoutForm courseId={course.id} email={user.email||""} currency={course.currency} amountMinor={price} isFree={price===0}/>}

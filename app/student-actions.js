@@ -91,7 +91,28 @@ export async function requestPasswordReset(formData) {
     console.error("Auth password reset email failed", { code: error.code, status: error.status });
     redirect("/reset-password?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "Too many requests. Please wait before requesting another reset email." : "The reset email request could not be completed. Please try again later."));
   }
-  redirect("/reset-password?next=" + encodeURIComponent(next) + "&message=If+that+account+exists%2C+a+reset+link+has+been+sent.");
+  (await cookies()).set("avc_recovery_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
+  redirect("/reset-password/code?next=" + encodeURIComponent(next) + "&message=If+that+account+exists%2C+we+have+sent+a+reset+email.");
+
+}
+
+export async function verifyPasswordRecoveryCode(formData) {
+  const next = safeNext(formData.get("next"));
+  const email = String(formData.get("email") || "").trim();
+  const token = String(formData.get("token") || "").replace(/\s/g, "");
+  const fail = message => redirect("/reset-password/code?next="+encodeURIComponent(next)+"&error="+encodeURIComponent(message));
+  (await cookies()).set("avc_recovery_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
+  if (!/^[0-9]{6,10}$/.test(token)) fail("Enter the code from your latest password reset email.");
+  const supabase = await createSupabaseAuthClient();
+  if (!supabase) fail("Password reset is temporarily unavailable. Please try again.");
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type:"recovery" });
+  if (error || !data?.user) {
+    console.error("Password recovery code failed", {code:error?.code,status:error?.status});
+    fail(error?.status===429 ? "Too many attempts. Wait a moment before trying again." : error?.code==="otp_expired" ? "This code is expired or already used. Request a new code and use the latest email." : "Unable to verify this code. Check your email address and code, then try again.");
+  }
+  await grantPasswordRecovery(data.user.id);
+  (await cookies()).delete("avc_recovery_email");
+  redirect("/reset-password/update?next="+encodeURIComponent(next));
 }
 
 export async function confirmPasswordRecovery(formData) {

@@ -10,3 +10,6 @@ No live Auth configuration or database change is implied by a Vercel deployment.
 
 ## Coupon fixes
 Coupon creation now explicitly interprets admin-entered dates in Africa/Lagos (UTC+1). Existing coupon dates are not shifted automatically. Review existing start/expiry timestamps in Supabase if entered before this release. Coupon validation distinguishes disabled/missing, future, expired, exhausted and database failures. Case-insensitive lookup escapes wildcard characters. Coupon payment rules remain server-enforced.
+
+## Password reset email
+Paste supabase/email-templates/reset-password.html into Supabase Authentication > Email Templates > Reset Password. Reset requests now lead to /reset-password/code; verification uses type recovery and grants password-update access only after Supabase verifies the code. Both template buttons open token-free pages, so email-link scanning cannot consume their codes. Existing reset links remain supported. Templates must be saved in Supabase; deployment alone does not update outgoing emails.

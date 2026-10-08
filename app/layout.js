@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./dashboard-refresh.css";
 import "./learning-store.css";
+import "./checkout-flow.css";
 import { getSeoSettings } from "@/lib/data/settings";
 import ToastHost from "@/Components/ToastHost";
 import CreatorSchema from "@/Components/CreatorSchema";

@@ -1,5 +1,6 @@
 "use client";
 
+import ToastFeedback from "./AdminToast";
 import { useState } from "react";
 import { formatMoney } from "@/lib/money/format";
 
@@ -24,9 +25,9 @@ export default function PaymentButton({ courseId, isFree = false, couponCode = "
       setError(paymentError.message);
     }
   }
-  const label = loading ? "Opening secure checkout…" : isFree ? "Enrol for free" : `Pay ${formatMoney(amountMinor, currency)} securely`;
+  const label = loading ? "Opening secure checkout…" : isFree ? "Enrol for free" : `Continue to payment - ${formatMoney(amountMinor, currency)}`;
   return <>
     <button className="button checkout-pay" type="button" disabled={loading || disabled} aria-busy={loading || undefined} onClick={pay}>{label}</button>
-    {error && <p className="form-error" role="alert">{error}</p>}
+    {error && <ToastFeedback kind="error" message={error}/>}
   </>;
 }

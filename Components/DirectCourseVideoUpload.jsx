@@ -1,24 +1,35 @@
 "use client";
 import StreamVideo from "@/Components/StreamVideo";
 import { streamVideoId } from "@/lib/stream-reference";
-import { Input } from "@/Components/FormControls";
+import { Input, Button } from "@/Components/FormControls";
 
 import { useEffect, useRef, useState } from "react";
 
 const MAX_BYTES = 2 * 1024 * 1024 * 1024;
 const TYPES = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
 
-function inspectVideo(file) {
+function inspectVideo(file, signalRef) {
   return new Promise((resolve, reject) => {
     const objectUrl = URL.createObjectURL(file);
     const video = document.createElement("video");
     video.preload = "metadata";
-    video.onloadedmetadata = () => {
-      const value = { width: video.videoWidth, height: video.videoHeight, durationSeconds: Math.round(video.duration), objectUrl };
-      if (!value.width || !value.height || !Number.isFinite(value.durationSeconds) || value.durationSeconds <= 0) { URL.revokeObjectURL(objectUrl); reject(new Error("This video is corrupted or its metadata is incomplete.")); return; }
-      resolve(value);
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      video.onloadedmetadata = null; video.onerror = null;
+      video.removeAttribute("src"); video.load();
+      if (error) { URL.revokeObjectURL(objectUrl); reject(error); }
+      else resolve(value);
     };
-    video.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("This video cannot be decoded by the browser.")); };
+    const timer = setTimeout(() => finish(new Error("Reading this video timed out. Try an MP4 exported with H.264 video.")), 20000);
+    signalRef.current = { abort: () => finish(new DOMException("Upload cancelled.", "AbortError")) };
+    video.onloadedmetadata = () => {
+      const value = { width: video.videoWidth, height: video.videoHeight, durationSeconds: Math.ceil(video.duration), objectUrl };
+      if (!value.width || !value.height || !Number.isFinite(value.durationSeconds) || value.durationSeconds <= 0) finish(new Error("This video has incomplete metadata. Try another export."));
+      else finish(null, value);
+    };
+    video.onerror = () => finish(new Error("This browser cannot read the video. Try an MP4 exported with H.264 video."));
     video.src = objectUrl;
   });
 }
@@ -71,17 +82,19 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!TYPES[file.type] || TYPES[file.type] !== extension) { setStatus(""); setError("Use an MP4, WebM or MOV file whose extension matches its file type."); return; }
     if (!file.size || file.size > MAX_BYTES) { setStatus(""); setError("Video files must be no larger than 2GB."); return; }
-    let metadata;
-    try { metadata = await inspectVideo(file); }
-    catch (inspectError) { setStatus(""); setError(inspectError.message); return; }
     activeRef.current = true;
+    let metadata;
+    try { metadata = await inspectVideo(file, requestRef); }
+    catch (inspectError) { activeRef.current = false; requestRef.current = null; setStatus(inspectError.name === "AbortError" ? "Upload cancelled. You can choose a file again." : ""); if (inspectError.name !== "AbortError") setError(inspectError.message); return; }
     let newStorageKey = "";
     try {
       setStatus("Preparing upload");
+      const controller = new AbortController();
+      requestRef.current = controller;
       let signed = resumeRef.current?.file === file ? resumeRef.current.signed : null;
       if (!signed) {
-      const signResponse = await fetch("/api/admin/course-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "sign", courseId, lessonId, fileName: file.name, fileSize: file.size, mimeType: file.type, durationSeconds: metadata.durationSeconds }) });
-      signed = await signResponse.json();
+      const signResponse = await fetch("/api/admin/course-video", { method: "POST", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "sign", courseId, lessonId, fileName: file.name, fileSize: file.size, mimeType: file.type, durationSeconds: metadata.durationSeconds }) });
+      signed = await signResponse.json().catch(() => ({ error: "Upload preparation failed. Refresh your admin session and retry." }));
       if (!signResponse.ok) throw new Error(signed.error || "A signed upload could not be created.");
       }
       if (!activeRef.current) throw new DOMException("Cancelled", "AbortError");
@@ -108,7 +121,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
       }
       setStatus("Verifying upload");
       const finalizeResponse = await fetch("/api/admin/course-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "finalize", courseId, lessonId, storageKey: newStorageKey, fileSize: file.size, mimeType: file.type, width: metadata.width, height: metadata.height, durationSeconds: metadata.durationSeconds }) });
-      const finalized = await finalizeResponse.json();
+      const finalized = await finalizeResponse.json().catch(() => ({ error: "The upload completed but verification failed. Retry when connected." }));
       if (!finalizeResponse.ok) throw new Error(finalized.error || "The uploaded video could not be verified.");
       if (asset.storageKey && asset.storageKey !== newStorageKey) {
         if (asset.storageKey === lesson?.storageKey) setObsoleteKey(asset.storageKey);
@@ -125,7 +138,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     } catch (uploadError) {
       URL.revokeObjectURL(metadata.objectUrl);
       if (newStorageKey) await removeTemporary(newStorageKey);
-      setStatus("");
+      setStatus(uploadError.name === "AbortError" ? "Upload cancelled. Retry to continue or choose another file." : "");
       if (uploadError.name !== "AbortError") setError(uploadError.message || "Video upload failed.");
     } finally { activeRef.current = false; requestRef.current = null; if (inputRef.current) inputRef.current.value = ""; }
   }
@@ -180,12 +193,12 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     <div className="upload-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); upload(event.dataTransfer.files?.[0]); }}>
       <strong>{asset.storageKey ? "Uploaded lesson video" : "Drop an MP4, WebM or MOV here"}</strong>
       <small>Uploaded directly to private storage · maximum 2GB</small>
-      <div className="row-actions"><button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{asset.storageKey ? "Replace video" : "Choose video"}</button>{busy && <button type="button" onClick={() => { activeRef.current = false; requestRef.current?.abort(); }}>Cancel upload</button>}{asset.storageKey && !busy && <button type="button" onClick={remove}>Remove video</button>}</div>
-      <Input ref={inputRef} className="cover-file-input" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => { resumeRef.current = null; upload(event.target.files?.[0]); }} />
+      <div className="row-actions"><Button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{asset.storageKey ? "Replace video" : "Choose video"}</Button>{busy && <Button variant="secondary" type="button" onClick={() => { activeRef.current = false; requestRef.current?.abort(); }}>Cancel upload</Button>}{asset.storageKey && !busy && <Button variant="danger" type="button" onClick={remove}>Remove video</Button>}</div>
+      <Input ref={inputRef} className="cover-file-input" aria-label="Upload lesson video" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => { resumeRef.current = null; upload(event.target.files?.[0]); }} />
     </div>
-    {busy && <div className="upload-status"><span>{status}</span><progress max="100" value={progress}>{progress}%</progress></div>}
+    {busy && <div className="upload-status"><span>{status}</span><progress aria-label="Video upload progress" max="100" value={progress}>{progress}%</progress></div>}
     {!busy && status && <p className="field-success">{status}</p>}
-    {error && <div className="upload-error"><p>{error}</p>{retryFile && <button type="button" onClick={() => upload(retryFile)}>Retry</button>}</div>}
+    {error && <div className="upload-error"><p>{error}</p>{retryFile && <Button variant="secondary" type="button" disabled={busy} onClick={() => upload(retryFile)}>Retry upload</Button>}</div>}
     {preview && <Video className={`course-admin-video is-${asset.orientation}`} src={preview} controls preload="metadata" playsInline />}
     {asset.width && <small className="media-facts">{asset.width} × {asset.height} · {asset.durationSeconds}s · {asset.orientation} · {Number(asset.aspectRatio).toFixed(3)}:1</small>}
   </section>;

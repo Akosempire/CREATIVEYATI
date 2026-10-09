@@ -44,3 +44,29 @@ The administrator reported applying the production SQL on 9 October 2026. This h
 - [ ] Verify the configured Bachs paid-course publishing/checkout path.
 
 Browser tests use simulated responses, not real production email, storage, payments or admin sessions. Upload recovery retries the file; it does not resume a multi-gigabyte upload byte-for-byte after a browser crash. Reselect the local file if the browser was closed. Media blobs are deliberately retained for draft/history recovery; a retention-aware cleanup job is future operational work. Course duplication copies private media and can require retry/manual cleanup if provider copy operations fail. Existing scheduled course rows continue to be served by their stored schedule; this workspace publishes revisions explicitly and does not introduce scheduled revision publishing.
+
+
+## Course upload usability review
+
+- Previewed the real course editor with the local `CourseWorkspaceReview` fixture.
+- New lessons default to direct upload and open immediately. Lesson URL slugs
+  derive from titles until manually edited. Save, duplicate and remove actions
+  use shared buttons; workspace actions no longer submit/reset the lesson form.
+- Optional poster/caption/transcript settings collapse without unmounting fields.
+  Module controls, lesson status, upload panels and mobile options have scoped
+  dashboard styling; the shared sidebar is unchanged.
+- Video inspection has a timeout and can be cancelled. Upload preparation handles
+  non-JSON error responses. Existing Supabase and gated Stream paths are retained.
+- PDF files transfer directly to private Supabase storage, avoiding Vercel's
+  request-body limit. Finalization verifies size, type and PDF signature, and
+  returns a stable resource ID on retry. Legacy small multipart requests remain
+  compatible. Poster images resize below 3 MB before sending to the server.
+- Pasted cover-image URLs populate dimensions after loading; unreadable URLs show
+  an error instead of leaving publishing blocked without an explanation.
+- Browser test: `scripts/check-course-upload-ui.py` (temporary development fixture
+  route described in the script), video failure/retry/autosave, 8 MB PDF transport,
+  duplicate lessons, 1440/768/390 px layouts. Storage responses are mocked.
+- Server test: `node scripts/check-course-resource-upload.mjs`, plus existing
+  Stream and workspace regression suites. Targeted lint and production build pass.
+- No new migration. Actual signed-in production storage upload still needs to be
+  verified with the deployed project's credentials; local credentials are placeholders.

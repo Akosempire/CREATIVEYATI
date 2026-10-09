@@ -72,20 +72,26 @@ export default function CourseWorkspace({
     }));
   }
   function addLesson(sectionId) {
+    const lessonId = crypto.randomUUID();
     sectionChange(sectionId, (s) => ({
       ...s,
       lessons: [
         ...s.lessons,
         {
-          id: crypto.randomUUID(),
+          id: lessonId,
           title: "",
           slug: "",
           lessonType: "video",
+          sourceType: "upload",
           status: "draft",
           resources: [],
         },
       ],
     }));
+    requestAnimationFrame(() => {
+      const panel = document.getElementById(lessonId);
+      if (panel) { panel.open = true; panel.querySelector('input[name="title"]')?.focus(); }
+    });
   }
   function duplicateLesson(sectionId, lesson) {
     sectionChange(sectionId, (s) => ({
@@ -533,7 +539,7 @@ export default function CourseWorkspace({
                       )}
                       <label>
                         Move to module
-                        <select
+                        <select className="dashboard-input"
                           value={section.id}
                           onChange={(e) => {
                             const target = e.target.value;

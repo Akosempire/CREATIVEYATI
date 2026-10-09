@@ -58,6 +58,7 @@ export default function CourseCoverField({ course }) {
   function changeUrl(next) {
     if (next !== url) scheduleCleanup(url);
     setUrl(next);
+    setDimensions({ width: 0, height: 0 });
     setMessage("");
   }
 
@@ -96,7 +97,7 @@ export default function CourseCoverField({ course }) {
     </div>
     <Input ref={inputRef} className="cover-file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => chooseFile(event.target.files?.[0])} />
     <label className="course-cover-url">Or paste an image URL<Input type="url" name="coverImageUrl" value={url} onChange={(event) => changeUrl(event.target.value)} placeholder="https://…" /></label>
-    {previewReady && <><Image className="cover-upload-preview" style={{ objectPosition: `${focalX}% ${focalY}%` }} src={url} width={960} height={540} sizes="(max-width: 780px) 90vw, 780px" unoptimized alt="Course cover preview" />{dimensions.width > 0 && <small className="media-facts">Stored at {dimensions.width} x {dimensions.height} in a fixed 16:9 frame</small>}<div className="course-cover-focal"><label>Horizontal focus<Input type="range" name="coverFocalX" min="0" max="100" value={focalX} onChange={(event) => setFocalX(event.target.value)} /></label><label>Vertical focus<Input type="range" name="coverFocalY" min="0" max="100" value={focalY} onChange={(event) => setFocalY(event.target.value)} /></label></div></>}
+    {previewReady && <><Image className="cover-upload-preview" style={{ objectPosition: `${focalX}% ${focalY}%` }} src={url} width={960} height={540} sizes="(max-width: 780px) 90vw, 780px" unoptimized onLoad={event => { const image = event.currentTarget; setDimensions({ width: image.naturalWidth, height: image.naturalHeight }); }} onError={() => { setDimensions({ width: 0, height: 0 }); setError("The cover image could not be loaded. Check the URL or upload an image."); }} alt="Course cover preview" />{dimensions.width > 0 && <small className="media-facts">Stored at {dimensions.width} x {dimensions.height} in a fixed 16:9 frame</small>}<div className="course-cover-focal"><label>Horizontal focus<Input type="range" name="coverFocalX" min="0" max="100" value={focalX} onChange={(event) => setFocalX(event.target.value)} /></label><label>Vertical focus<Input type="range" name="coverFocalY" min="0" max="100" value={focalY} onChange={(event) => setFocalY(event.target.value)} /></label></div></>}
     {!previewReady && <><Input type="hidden" name="coverFocalX" value={focalX} /><Input type="hidden" name="coverFocalY" value={focalY} /></>}
     {busy && <div className="upload-status"><span>{progress < 100 ? "Uploading and processing" : "Processing"}</span><progress max="100" value={progress}>{progress}%</progress></div>}
     {message && <p className="field-success">{message}</p>}

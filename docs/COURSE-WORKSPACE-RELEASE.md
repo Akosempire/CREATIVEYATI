@@ -94,3 +94,9 @@ Browser tests use simulated responses, not real production email, storage, payme
   simulated database/storage: delayed upload, concurrent edits/autosave, prop
   refresh, removal/navigation protection, and final media-reference persistence.
   Live signed-in storage delivery is not covered by these simulated responses.
+
+### Signed-upload diagnostics
+- Preserve actionable size, MIME, expiry and permission categories from storage rejections without displaying signed URLs or tokens.
+- Check the live course-videos bucket size/MIME settings before signing. Project-wide limits remain independently enforced by Supabase.
+- Tests: check-storage-upload-error.mjs and check-video-upload-limits.mjs. Actual user rejection is not yet classified without file size or storage response.
+

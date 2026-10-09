@@ -35,6 +35,12 @@ export async function POST(request) {
       try { return Response.json(await courseStreamUpload(service, { ...body, action: "sign" })); }
       catch (error) { return fail(error.message, 502); }
     }
+    const { data: bucket, error: bucketError } = await service.storage.getBucket(BUCKET);
+    if (bucketError || !bucket) return fail("The course-videos storage bucket could not be checked. Verify that it exists in the live Supabase project.", 502);
+    if (Number(bucket.file_size_limit) > 0 && fileSize > Number(bucket.file_size_limit))
+      return fail(`This video exceeds the course-videos bucket limit of ${Math.round(Number(bucket.file_size_limit) / 1024 / 1024)} MB. Adjust the bucket and global storage limits, or use a smaller video.`, 413);
+    if (bucket.allowed_mime_types?.length && !bucket.allowed_mime_types.some(type => type === mimeType || type === "*/*" || type === "video/*"))
+      return fail("The course-videos bucket does not allow this video format. Enable its MIME type in Supabase Storage.");
     const storageKey = `${courseId}/${lessonId}/${randomUUID()}.${extension}`;
     const { data, error } = await service.storage.from(BUCKET).createSignedUploadUrl(storageKey);
     if (error || !data?.signedUrl) return fail("The signed upload could not be created. Apply the course workflow migration and retry.", 502);

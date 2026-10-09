@@ -1,4 +1,5 @@
 "use client";
+import { storageUploadError } from "@/lib/storage-upload-error";
 import { useEffect, useRef, useState } from "react";
 import { Input, Button } from "@/Components/FormControls";
 export default function CourseResourcesDraft({
@@ -54,7 +55,7 @@ export default function CourseResourcesDraft({
           xhr.upload.onprogress = e => { if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 100)); };
           xhr.onerror = () => reject(new Error("The connection failed. Retry when connected."));
           xhr.onabort = () => reject(new Error("Upload cancelled. You can retry."));
-          xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Private storage rejected the upload. Please retry."));
+          xhr.onload = () => xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(storageUploadError(xhr.status, xhr.responseText)));
           const body = new FormData(); body.append("cacheControl", "3600"); body.append("", file); xhr.send(body);
         });
         pending.current = { file, storageKey: signed.storageKey };

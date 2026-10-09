@@ -1,4 +1,5 @@
 "use client";
+import { storageUploadError } from "@/lib/storage-upload-error";
 import StreamVideo from "@/Components/StreamVideo";
 import { streamVideoId } from "@/lib/stream-reference";
 import { Input, Button } from "@/Components/FormControls";
@@ -46,7 +47,7 @@ function uploadSigned(signedUrl, file, onProgress, signalRef) {
     request.upload.onprogress = (event) => { if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 100)); };
     request.onerror = () => reject(new Error("The direct upload connection failed."));
     request.onabort = () => reject(new DOMException("Upload cancelled.", "AbortError"));
-    request.onload = () => request.status >= 200 && request.status < 300 ? resolve() : reject(new Error("Supabase rejected the signed upload."));
+    request.onload = () => request.status >= 200 && request.status < 300 ? resolve() : reject(new Error(storageUploadError(request.status, request.responseText)));
     request.send(body);
   });
 }

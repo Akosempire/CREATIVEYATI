@@ -1,4 +1,6 @@
 "use server";
+import { streamVideoId } from "@/lib/stream-reference";
+import { streamJson } from "@/lib/cloudflare-stream";
 import { randomUUID } from "node:crypto";
 import { loadCourseWorkspace } from "@/lib/data/course-workspace";
 import { revalidatePath } from "next/cache";
@@ -88,6 +90,10 @@ export async function publishWorkspace(id, revision) {
             .eq("storage_key", lesson.storage_key)
             .eq("processing_status", "ready")
             .maybeSingle();
+          if (asset && streamVideoId(lesson.storage_key)) {
+            const video = await streamJson(`/${streamVideoId(lesson.storage_key)}`);
+            if (!video.readyToStream || !video.requireSignedURLs) issues.push({ step: "curriculum", field: lesson.id, message: `${lesson.title}: protected Stream video is not ready.` });
+          }
           if (e || !asset)
             issues.push({
               step: "curriculum",
@@ -225,6 +231,7 @@ export async function duplicateWorkspace(id) {
     if (!prepared.ok) return prepared;
     async function copy(bucket, key) {
       if (!key) return "";
+      if (bucket === "course-videos" && streamVideoId(key)) return `${nextId}/${randomUUID()}/${streamVideoId(key)}.stream`;
       const destination = `${nextId}/copied/${randomUUID()}.${key.split(".").pop()}`;
       const { error } = await db.storage.from(bucket).copy(key, destination);
       if (error)

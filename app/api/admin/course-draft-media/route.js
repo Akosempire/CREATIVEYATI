@@ -1,3 +1,5 @@
+import { streamPlayback } from "@/lib/cloudflare-stream";
+import { streamVideoId } from "@/lib/stream-reference";
 import {
   createSupabaseServiceClient,
   getAdminUser,
@@ -23,6 +25,10 @@ export async function GET(request) {
       { error: "Invalid media reference." },
       { status: 400 },
     );
+  if (kind === "video" && streamVideoId(key)) {
+    try { return Response.json({ url: await streamPlayback(createSupabaseServiceClient(), key, id) }, { headers: { "Cache-Control": "private, no-store" } }); }
+    catch (error) { return Response.json({ error: error.message }, { status: 502 }); }
+  }
   const { data, error } = await createSupabaseServiceClient()
     .storage.from(kind === "video" ? "course-videos" : "course-posters")
     .createSignedUrl(key, 120);

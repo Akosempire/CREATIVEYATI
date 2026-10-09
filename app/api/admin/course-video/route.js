@@ -1,3 +1,6 @@
+import { streamConfigured } from "@/lib/cloudflare-stream";
+import { streamVideoId } from "@/lib/stream-reference";
+import { courseStreamUpload } from "@/lib/course-stream-upload";
 import { randomUUID } from "node:crypto";
 import { createSupabaseServiceClient, getAdminUser } from "@/lib/supabase/server";
 
@@ -27,12 +30,21 @@ export async function POST(request) {
     const fileSize = Number(body.fileSize);
     if (!MIME_EXTENSIONS[mimeType] || extension !== MIME_EXTENSIONS[mimeType]) return fail("Use an MP4, WebM or MOV file whose extension matches its content type.");
     if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_BYTES) return fail("Video files must be no larger than 2GB.");
+    if (process.env.COURSE_VIDEO_UPLOAD_PROVIDER === "cloudflare") {
+      if (!streamConfigured()) return fail("Cloudflare Stream credentials are missing.", 503);
+      try { return Response.json(await courseStreamUpload(service, { ...body, action: "sign" })); }
+      catch (error) { return fail(error.message, 502); }
+    }
     const storageKey = `${courseId}/${lessonId}/${randomUUID()}.${extension}`;
     const { data, error } = await service.storage.from(BUCKET).createSignedUploadUrl(storageKey);
     if (error || !data?.signedUrl) return fail("The signed upload could not be created. Apply the course workflow migration and retry.", 502);
     return Response.json({ signedUrl: data.signedUrl, storageKey, token: data.token });
   }
 
+  if (streamVideoId(body.storageKey) && ["finalize", "status"].includes(action)) {
+    try { return Response.json(await courseStreamUpload(service, body)); }
+    catch (error) { return fail(error.message, 502); }
+  }
   const storageKey = safeStorageKey(body.storageKey, courseId, lessonId);
   if (!storageKey) return fail("The uploaded video reference is invalid.");
 

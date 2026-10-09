@@ -1,3 +1,5 @@
+import { streamPlayback } from "@/lib/cloudflare-stream";
+import { streamVideoId } from "@/lib/stream-reference";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient, getAdminUser, getStudentUser } from "@/lib/supabase/server";
 
@@ -28,6 +30,12 @@ export async function GET(request, { params }) {
   if (!storageKey) return Response.json({ error: "This media file is unavailable." }, { status: 404 });
   const download = kind === "video" && url.searchParams.get("download") === "1";
   if (download && !lesson.allow_download) return Response.json({ error: "Downloading is disabled for this lesson." }, { status: 403 });
+  if (kind === "video" && streamVideoId(storageKey)) {
+    try {
+      const playback = await streamPlayback(service, storageKey, lesson.course_id, download);
+      return download ? new Response(null, { status: 302, headers: { Location: playback, "Cache-Control": "private, no-store" } }) : Response.json({ url: playback }, { headers: { "Cache-Control": "private, no-store" } });
+    } catch (error) { return Response.json({ error: error.message }, { status: 502 }); }
+  }
   const { data, error } = await service.storage.from(bucket).createSignedUrl(storageKey, 120, download ? { download: true } : undefined);
   if (error || !data?.signedUrl) return Response.json({ error: "A temporary media link could not be created." }, { status: 502 });
   return NextResponse.redirect(data.signedUrl);

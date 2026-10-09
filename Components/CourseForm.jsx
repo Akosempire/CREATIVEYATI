@@ -9,7 +9,7 @@ import { getCourseVideoSource } from "@/lib/course-video-source";
 
 export default function CourseForm({ course, action, step = "details", onDraftChange }) {
   const formRef = useCourseFormCapture(onDraftChange); const [free, setFree] = useState(course?.isFree ?? true); const [price, setPrice] = useState(course ? course.priceMinor / 100 : 0); const [discount, setDiscount] = useState(course?.discountedPriceMinor == null ? "" : course.discountedPriceMinor / 100); const [currency, setCurrency] = useState(course?.currency || "NGN"); const [promoUrl, setPromoUrl] = useState(course?.promotionalVideoUrl || ""); const [promoOrientation, setPromoOrientation] = useState(course?.promotionalOrientation || "landscape"); const lines = (value) => Array.isArray(value) ? value.join("\n") : ""; const promo = getCourseVideoSource(promoUrl); const previewAmount = discount !== "" && Number(discount) >= 0 && Number(discount) <= Number(price) ? discount : price;
-  return <form ref={formRef} noValidate className="admin-form course-admin-form" action={action}>
+  return <form ref={formRef} noValidate className="admin-form course-admin-form" onSubmit={event => { event.preventDefault(); action(); }}>
     <Input type="hidden" name="id" value={course?.id || ""} /><Input type="hidden" name="step" value={step} />
     {step === "details" && <>
       <label>Title<Input name="title" defaultValue={course?.title} required /></label><label>Slug<Input name="slug" defaultValue={course?.slug} pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>

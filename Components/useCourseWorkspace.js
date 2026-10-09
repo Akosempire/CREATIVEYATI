@@ -18,6 +18,8 @@ export default function useCourseWorkspace(
   const [generation, setGeneration] = useState(0);
   const [offline, setOffline] = useState(false);
   const current = useRef(initial.document);
+  const openingDocument = useRef(initial.document);
+  const recoveryChecked = useRef(false);
   const revision = useRef(initial.revision);
   const dirty = useRef(false);
   const pending = useRef(null);
@@ -128,17 +130,20 @@ export default function useCourseWorkspace(
     [backup, debounce, save, initial.isNew],
   );
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
-      if (
-        stored?.document &&
-        JSON.stringify(stored.document) !== JSON.stringify(initial.document)
-      ) {
-        paused.current = true;
-        queueMicrotask(() => setRecovery(stored));
+    if (!recoveryChecked.current) {
+      recoveryChecked.current = true;
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
+        if (
+          stored?.document &&
+          JSON.stringify(stored.document) !== JSON.stringify(openingDocument.current)
+        ) {
+          paused.current = true;
+          queueMicrotask(() => setRecovery(stored));
+        }
+      } catch {
+        /* Storage may be unavailable in private browsing. */
       }
-    } catch {
-      /* Storage may be unavailable in private browsing. */
     }
     const warn = (event) => {
       if (
@@ -181,7 +186,7 @@ export default function useCourseWorkspace(
       window.removeEventListener("online", online);
       window.removeEventListener("offline", offlineHandler);
     };
-  }, [backup, save, storageKey, initial.document]);
+  }, [backup, save, storageKey]);
   function recover() {
     if (!recovery) return;
     paused.current = false;

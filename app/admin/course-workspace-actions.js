@@ -55,7 +55,7 @@ export async function saveWorkspace(id, revision, document) {
       actor: UUID.test(actor.id) ? actor.id : null,
     });
     if (error) return failure(error);
-    revalidatePath("/admin/courses");
+    // Private autosaves must not refresh the editor tree. The course list reads live data.
     return { ok: true, revision: data };
   } catch (error) {
     return failure(error);

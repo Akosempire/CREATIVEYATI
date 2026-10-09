@@ -42,7 +42,7 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
     posterUrl: lesson?.posterUrl || parsedSource.posterUrl, posterStorageKey: lesson?.posterStorageKey || "", allowDownload: false,
   } : null;
 
-  return <form ref={formRef} noValidate={workspace} className="admin-form lesson-admin-form" action={saveAction}>
+  return <form ref={formRef} noValidate={workspace} className="admin-form lesson-admin-form" action={workspace ? undefined : saveAction} onSubmit={workspace ? event => { event.preventDefault(); saveAction(); } : undefined}>
     <Input type="hidden" name="id" value={lessonId} /><Input type="hidden" name="newLesson" value={isNew ? "1" : "0"} />
     <Input type="hidden" name="courseId" value={course.id} /><Input type="hidden" name="sectionId" value={section.id} />
     <Input type="hidden" name="sourceType" value={hasVideo ? sourceType : ""} />

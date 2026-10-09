@@ -29,7 +29,7 @@ export default function CourseTextEditor({
   return (
     <div>
       <div
-        className="cw-module-toolbar"
+        className="cw-text-toolbar"
         role="toolbar"
         aria-label="Text formatting"
       >

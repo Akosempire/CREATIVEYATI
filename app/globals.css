@@ -2062,3 +2062,22 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
  .course-workspace .lesson-choice>div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
  .course-workspace .lesson-choice label { min-width:0; padding:10px 8px; font-size:12px; }
 }
+
+/* Stable editor controls while background saving updates its status. */
+.course-workspace .reorder-buttons { display:inline-flex; align-items:center; gap:8px; }
+.course-workspace .cw-text-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 12px; }
+.course-workspace .cw-text-toolbar .button { min-height:36px; padding:8px 12px; }
+.course-workspace .cw-save-bar>[role=status] { flex:0 0 180px; min-height:24px; line-height:24px; }
+.course-workspace .cw-save-bar>div { gap:12px; }
+.course-workspace .cw-save-bar .button { min-width:120px; }
+.course-workspace .cw-content>.button { margin-top:12px; }
+.course-workspace .cw-content>.button+p { margin-top:16px; line-height:1.65; }
+.course-workspace .cw-lifecycle { margin-top:24px; }
+.course-workspace .cw-content .form-warning { line-height:1.65; padding:12px 0; }
+.course-workspace .cw-footer>span { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; }
+.course-workspace .cw-recovery p { margin:10px 0 16px; line-height:1.65; }
+.course-workspace .upload-status+.field-success,.course-workspace .direct-video-upload>.field-success { margin:14px 0; line-height:1.6; }
+@media(max-width:700px){
+ .course-workspace .cw-save-bar>[role=status] { flex-basis:100%; }
+ .course-workspace .cw-footer>span { align-items:flex-start; flex-direction:column; gap:8px; }
+}

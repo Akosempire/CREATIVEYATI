@@ -70,3 +70,13 @@ Browser tests use simulated responses, not real production email, storage, payme
   Stream and workspace regression suites. Targeted lint and production build pass.
 - No new migration. Actual signed-in production storage upload still needs to be
   verified with the deployed project's credentials; local credentials are placeholders.
+
+### Editor spacing and autosave stability
+- Added spacing between reorder controls, formatting tools and helper text; reserved
+  save-status space so background saving does not move action buttons.
+- Private draft saves no longer revalidate the editor route tree. Browser recovery
+  is checked once on opening a course; subsequent server props preserve editing.
+- Enter saves without resetting course or lesson forms. Changing course IDs still
+  mounts a fresh editor.
+- `scripts/check-course-editor-stability.py` covers server-prop refresh, Enter,
+  idle autosave, button gaps and stable save-bar height at 1440/768/390 px.

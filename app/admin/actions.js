@@ -321,7 +321,11 @@ function lineList(value) { return String(value || "").split(/\r?\n/).map((item) 
 function moneyToMinor(value) { const amount = Number(value); return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : null; }
 function validSlug(value) { return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value); }
 
+async function courseWorkspaceRequired() { await admin(); redirect("/admin/courses?error=Reopen+the+course+workspace+to+save+changes+safely"); }
+
 export async function saveCourse(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const supabase = await createSupabaseServerClient();
   const id = String(formData.get("id") || ""); const step = String(formData.get("step") || "details"); let record = { updated_at: new Date().toISOString() }; let slug = ""; let coverImageUrl = "";
   if (step === "details") {
@@ -346,6 +350,8 @@ export async function saveCourse(formData) {
 }
 
 export async function saveCourseSection(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const supabase = await createSupabaseServerClient(); const courseId = String(formData.get("courseId") || ""); const sectionId = String(formData.get("id") || ""); const title = String(formData.get("title") || "").trim(); const destination = `/admin/courses/${courseId}/curriculum`; if (!title) redirect(`${destination}?error=${encodeURIComponent("Section title is required.")}`);
   if (sectionId) { const { error } = await supabase.from("course_sections").update({ title, description: String(formData.get("description") || "").trim(), updated_at: new Date().toISOString() }).eq("id", sectionId); if (error) redirect(`${destination}?error=${encodeURIComponent("The section could not be updated.")}`); revalidatePath(destination); redirect(`${destination}?saved=section`); }
   const { data: last } = await supabase.from("course_sections").select("display_order").eq("course_id", courseId).order("display_order", { ascending: false }).limit(1).maybeSingle();
@@ -354,6 +360,8 @@ export async function saveCourseSection(formData) {
 }
 
 export async function saveCourseLesson(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const courseId = String(formData.get("courseId") || ""); const sectionId = String(formData.get("sectionId") || ""); const targetSectionId = String(formData.get("targetSectionId") || sectionId); const lessonId = String(formData.get("id") || ""); const title = String(formData.get("title") || "").trim(); const slug = String(formData.get("slug") || "").trim(); const destination = `/admin/courses/${courseId}/curriculum`; if (!title || !validSlug(slug)) redirect(`${destination}?error=${encodeURIComponent("Lesson title and lowercase slug are required.")}`);
   const { data: targetSection } = await service.from("course_sections").select("id").eq("id", targetSectionId).eq("course_id", courseId).maybeSingle();
   if (!targetSection) redirect(`${destination}?error=${encodeURIComponent("Choose a section that belongs to this course.")}`);
@@ -383,10 +391,16 @@ export async function saveCourseLesson(formData) {
   revalidatePath(destination); revalidatePath(`/courses`, "layout"); redirect(`${destination}?saved=lesson`);
 }
 
-export async function deleteCourseSection(formData) { await admin(); const supabase = await createSupabaseServerClient(); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/curriculum`; const { error } = await supabase.from("course_sections").delete().eq("id", String(formData.get("id") || "")); if (error) redirect(`${destination}?error=${encodeURIComponent("The section could not be deleted.")}`); revalidatePath(destination); redirect(`${destination}?saved=deleted`); }
-export async function deleteCourseLesson(formData) { await admin(); const service = createSupabaseServiceClient(); const courseId = String(formData.get("courseId") || ""); const lessonId = String(formData.get("id") || ""); const destination = `/admin/courses/${courseId}/curriculum`; const [{ data: media = [] }, { data: resources = [] }] = await Promise.all([service.from("media_assets").select("bucket,storage_key").eq("lesson_id", lessonId).eq("course_id", courseId), service.from("course_resources").select("storage_key").eq("lesson_id", lessonId).eq("course_id", courseId)]); const { error } = await service.from("course_lessons").delete().eq("id", lessonId).eq("course_id", courseId); if (error) redirect(`${destination}?error=${encodeURIComponent("The lesson could not be deleted.")}`); await Promise.all([...media.map((asset) => service.storage.from(asset.bucket).remove([asset.storage_key])), ...resources.map((item) => service.storage.from("course-resources").remove([item.storage_key]))]); revalidatePath(destination); redirect(`${destination}?saved=deleted`); }
+export async function deleteCourseSection(formData) {
+  await courseWorkspaceRequired();
+ await admin(); const supabase = await createSupabaseServerClient(); const courseId = String(formData.get("courseId") || ""); const destination = `/admin/courses/${courseId}/curriculum`; const { error } = await supabase.from("course_sections").delete().eq("id", String(formData.get("id") || "")); if (error) redirect(`${destination}?error=${encodeURIComponent("The section could not be deleted.")}`); revalidatePath(destination); redirect(`${destination}?saved=deleted`); }
+export async function deleteCourseLesson(formData) {
+  await courseWorkspaceRequired();
+ await admin(); const service = createSupabaseServiceClient(); const courseId = String(formData.get("courseId") || ""); const lessonId = String(formData.get("id") || ""); const destination = `/admin/courses/${courseId}/curriculum`; const [{ data: media = [] }, { data: resources = [] }] = await Promise.all([service.from("media_assets").select("bucket,storage_key").eq("lesson_id", lessonId).eq("course_id", courseId), service.from("course_resources").select("storage_key").eq("lesson_id", lessonId).eq("course_id", courseId)]); const { error } = await service.from("course_lessons").delete().eq("id", lessonId).eq("course_id", courseId); if (error) redirect(`${destination}?error=${encodeURIComponent("The lesson could not be deleted.")}`); await Promise.all([...media.map((asset) => service.storage.from(asset.bucket).remove([asset.storage_key])), ...resources.map((item) => service.storage.from("course-resources").remove([item.storage_key]))]); revalidatePath(destination); redirect(`${destination}?saved=deleted`); }
 
 export async function duplicateCourseLesson(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const courseId = String(formData.get("courseId") || ""); const id = String(formData.get("id") || ""); const destination = `/admin/courses/${courseId}/curriculum`;
   const { data: lesson } = await service.from("course_lessons").select("*").eq("id", id).eq("course_id", courseId).maybeSingle(); if (!lesson) redirect(`${destination}?error=${encodeURIComponent("The lesson could not be found.")}`);
   const { data: last } = await service.from("course_lessons").select("display_order").eq("section_id", lesson.section_id).order("display_order", { ascending: false }).limit(1).maybeSingle();
@@ -399,6 +413,8 @@ export async function duplicateCourseLesson(formData) {
 }
 
 export async function updateCoursePublication(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const courseId = String(formData.get("courseId") || ""); const intent = String(formData.get("intent") || "publish"); const destination = `/admin/courses/${courseId}/edit?step=publish`;
   if (["publish", "schedule"].includes(intent)) { const issues = await getCoursePublishIssues(courseId); if (issues.length) redirect(`${destination}&error=${encodeURIComponent(issues[0])}`); }
   const now = new Date().toISOString(); let record;
@@ -411,6 +427,8 @@ export async function updateCoursePublication(formData) {
 }
 
 export async function duplicateCourse(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const id = String(formData.get("courseId") || ""); const { data: original } = await service.from("courses").select("*").eq("id", id).is("deleted_at", null).maybeSingle(); if (!original) redirect("/admin/courses?error=Course+not+found");
   const { id: ignored, created_at: created, updated_at: updated, published_at: published, scheduled_for: scheduled, ...copy } = original; void ignored; void created; void updated; void published; void scheduled; copy.title = `${original.title} copy`; copy.slug = `${original.slug}-copy-${Date.now().toString(36)}`; copy.status = "draft"; copy.featured = false; copy.duplicated_from = id; const { data: createdCourse, error } = await service.from("courses").insert(copy).select("id").single(); if (error) redirect("/admin/courses?error=Course+could+not+be+duplicated");
   const { data: sections = [] } = await service.from("course_sections").select("*").eq("course_id", id).order("display_order");
@@ -419,10 +437,14 @@ export async function duplicateCourse(formData) {
 }
 
 export async function deleteCourse(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const id = String(formData.get("courseId") || ""); const { error } = await service.from("courses").update({ deleted_at: new Date().toISOString(), status: "archived", featured: false }).eq("id", id); if (error) redirect("/admin/courses?error=Course+could+not+be+deleted"); revalidatePath("/"); revalidatePath("/courses"); revalidatePath("/admin/courses"); redirect("/admin/courses?saved=deleted");
 }
 
 export async function reorderCurriculum(kind, parentId, ids, courseId = parentId) {
+  await courseWorkspaceRequired();
+
   await admin(); if (!Array.isArray(ids) || ids.some((id) => !/^[0-9a-f-]{36}$/i.test(id))) return { ok: false, error: "Invalid curriculum order." };
   const supabase = await createSupabaseServerClient();
   const rpc = kind === "sections"
@@ -434,6 +456,8 @@ export async function reorderCurriculum(kind, parentId, ids, courseId = parentId
 }
 
 export async function deleteCourseResource(formData) {
+  await courseWorkspaceRequired();
+
   await admin(); const service = createSupabaseServiceClient(); const id = String(formData.get("id") || ""); const courseId = String(formData.get("courseId") || ""); const destination = formData.get("returnTo") === "materials" ? `/admin/courses/${courseId}/materials` : `/admin/courses/${courseId}/curriculum`; const { data, error: lookupError } = await service.from("course_resources").select("storage_key").eq("id", id).eq("course_id", courseId).maybeSingle(); if (lookupError || !data) redirect(`${destination}?error=${encodeURIComponent("The resource could not be found.")}`); const { error } = await service.from("course_resources").delete().eq("id", id).eq("course_id", courseId); if (error) redirect(`${destination}?error=${encodeURIComponent("The resource could not be removed.")}`); if (data.storage_key) await service.storage.from("course-resources").remove([data.storage_key]); revalidatePath(destination); redirect(`${destination}?saved=deleted`);
 }
 

@@ -2,6 +2,8 @@
 import { Input, Select, Textarea } from "@/Components/FormControls";
 
 import { useMemo, useState } from "react";
+import useCourseFormCapture from "@/Components/useCourseFormCapture";
+import CourseTextEditor from "@/Components/CourseTextEditor";
 import CourseVideoPlayer from "@/Components/CourseVideoPlayer";
 import DirectCourseVideoUpload from "@/Components/DirectCourseVideoUpload";
 import LessonPosterField from "@/Components/LessonPosterField";
@@ -12,7 +14,8 @@ const lessonTypes = [
 ];
 const sourceTypes = [["upload", "Upload video"], ["youtube", "YouTube"], ["vimeo", "Vimeo"], ["google_drive", "Google Drive"]];
 
-export default function CourseLessonEditor({ course, section, sections, lesson, lessonId, saveAction, deleteAction, duplicateAction }) {
+export default function CourseLessonEditor({ course, section, sections, lesson, lessonId, saveAction, deleteAction, duplicateAction, onDraftChange, workspace = false }) {
+  const formRef = useCourseFormCapture(onDraftChange);
   const isNew = !lesson;
   const [lessonType, setLessonType] = useState(lesson?.lessonType || "video");
   const initialSource = lesson?.sourceType || lesson?.videoProvider || "youtube";
@@ -26,18 +29,18 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
 
   function chooseSource(next) {
     if (next === sourceType) return;
-    if (lesson && (lesson.storageKey || lesson.sourceUrl) && !window.confirm("Replace the existing lesson source? The current source remains active until you save successfully.")) return;
+    if (lesson && (lesson.storageKey || lesson.sourceUrl) && !window.confirm("Replace the existing lesson source? The current source remains active until you publish this revision.")) return;
     setSourceType(next);
     setSourceUrl("");
   }
 
   const previewLesson = parsedSource ? {
-    id: lessonId, title: lesson?.title || "Lesson preview", sourceType, embedUrl: parsedSource.embedUrl,
+    id: lessonId, courseId: course.id, title: lesson?.title || "Lesson preview", sourceType, embedUrl: parsedSource.embedUrl,
     orientation, aspectRatio: orientation === "portrait" ? 9 / 16 : 16 / 9,
     posterUrl: lesson?.posterUrl || parsedSource.posterUrl, posterStorageKey: lesson?.posterStorageKey || "", allowDownload: false,
   } : null;
 
-  return <form className="admin-form lesson-admin-form" action={saveAction}>
+  return <form ref={formRef} noValidate={workspace} className="admin-form lesson-admin-form" action={saveAction}>
     <Input type="hidden" name="id" value={lessonId} /><Input type="hidden" name="newLesson" value={isNew ? "1" : "0"} />
     <Input type="hidden" name="courseId" value={course.id} /><Input type="hidden" name="sectionId" value={section.id} />
     <Input type="hidden" name="sourceType" value={hasVideo ? sourceType : ""} />
@@ -47,12 +50,12 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
     {!hasVideo && lesson?.storageKey && <Input type="hidden" name="obsoleteStorageKey" value={lesson.storageKey} />}
     <label>Lesson title<Input name="title" defaultValue={lesson?.title} required /></label>
     <label>Lesson slug<Input name="slug" defaultValue={lesson?.slug} pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>
-    <label className="form-wide">Short description<Textarea name="description" rows="2" defaultValue={lesson?.description} /></label>
+    <label className="form-wide">Short description<CourseTextEditor name="description" rows={3} defaultValue={lesson?.description} /></label>
     <fieldset className="lesson-choice form-wide"><legend>Content type</legend><div>{lessonTypes.map(([value, label]) => <label key={value}><Input type="radio" name="lessonType" value={value} checked={lessonType === value} onChange={() => setLessonType(value)} />{label}</label>)}</div></fieldset>
 
     {hasVideo && <>
       <fieldset className="lesson-choice form-wide"><legend>How do you want to add this video?</legend><div>{sourceTypes.map(([value, label]) => <label key={value}><Input type="radio" value={value} checked={sourceType === value} onChange={() => chooseSource(value)} />{label}</label>)}</div></fieldset>
-      {sourceChanged && <p className="form-warning form-wide">The current source stays attached to the lesson until this replacement saves successfully.</p>}
+      {sourceChanged && <p className="form-warning form-wide">The current source stays attached to the lesson until you publish this revision.</p>}
       {sourceType === "upload" ? <DirectCourseVideoUpload courseId={course.id} lessonId={lessonId} lesson={lesson} /> : <>
         <label className="form-wide">{sourceType === "youtube" ? "YouTube video URL" : sourceType === "vimeo" ? "Vimeo video URL" : "Google Drive share link"}<Input type="url" name="sourceUrl" value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} placeholder={sourceType === "google_drive" ? "https://drive.google.com/file/d/FILE_ID/view" : `https://${sourceType === "vimeo" ? "vimeo.com/…" : "youtube.com/watch?v=…"}`} required={lesson?.status === "published"} />{sourceUrl && <small className={parsedSource ? "field-success" : "form-error"}>{parsedSource ? `${sourceType === "google_drive" ? "Google Drive" : sourceType[0].toUpperCase() + sourceType.slice(1)} source recognised.` : `Enter a valid ${sourceType === "google_drive" ? "Google Drive" : sourceType} video link.`}</small>}</label>
         <label>Orientation<Select name="orientation" value={orientation} onChange={(event) => setOrientation(event.target.value)}><option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option></Select></label>
@@ -72,12 +75,12 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
       <label className="form-wide">Transcript<Textarea name="transcript" rows="6" defaultValue={lesson?.transcript} /></label>
     </>}
 
-    {["text", "mixed"].includes(lessonType) && <label className="form-wide">Lesson text<Textarea name="body" rows="8" defaultValue={lesson?.body} /></label>}
+    {["text", "mixed"].includes(lessonType) && <label className="form-wide">Lesson text<CourseTextEditor name="body" defaultValue={lesson?.body} /></label>}
     {["external", "mixed"].includes(lessonType) && <label className="form-wide">External resource URL<Input type="url" name="externalUrl" defaultValue={lesson?.externalUrl} placeholder="https://…" /></label>}
-    {lessonType === "pdf" && <p className="form-warning form-wide">Save the lesson first, then upload its private PDF in Course materials below.</p>}
-    {lesson && <label>Move to section<Select name="targetSectionId" defaultValue={section.id}>{sections.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</Select></label>}
-    <label>Status<Select name="lessonStatus" defaultValue={lesson?.status || "draft"}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></Select></label>
+    {lessonType === "pdf" && <p className="form-warning form-wide">Upload the private PDF in Downloadable resources below. It will be saved with this draft.</p>}
+    {lesson && !workspace && <label>Move to section<Select name="targetSectionId" defaultValue={section.id}>{sections.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</Select></label>}
+    <label>Status<Select name="lessonStatus" defaultValue={lesson?.status || "draft"}><option value="draft">Draft</option><option value="published">Ready to publish</option><option value="archived">Archived</option></Select></label>
     <label className="check-label"><Input type="checkbox" name="isPreview" defaultChecked={lesson?.isPreview} />Free preview lesson</label>
-    <div className="lesson-form-actions form-wide"><button className="button">{lesson ? "Save lesson" : "Add lesson"}</button>{lesson && <button type="submit" formAction={duplicateAction}>Duplicate lesson</button>}{lesson && <button type="submit" formAction={deleteAction} onClick={(event) => { if (!window.confirm("Delete this lesson and its resources? This cannot be undone.")) event.preventDefault(); }}>Delete lesson</button>}</div>
+    <div className="lesson-form-actions form-wide"><button className="button">{lesson ? "Save lesson" : "Add lesson"}</button>{lesson && <button type="submit" formAction={duplicateAction}>Duplicate lesson</button>}{lesson && <button type="submit" formAction={deleteAction} onClick={(event) => { if (!window.confirm("Remove this lesson from the working draft? Existing student progress will be retained.")) event.preventDefault(); }}>Remove lesson</button>}</div>
   </form>;
 }

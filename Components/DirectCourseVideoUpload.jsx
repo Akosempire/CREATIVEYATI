@@ -1,7 +1,7 @@
 "use client";
 import { Input } from "@/Components/FormControls";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const MAX_BYTES = 2 * 1024 * 1024 * 1024;
 const TYPES = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
@@ -46,7 +46,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     durationSeconds: lesson?.durationSeconds || "", orientation: lesson?.orientation || "landscape",
     aspectRatio: lesson?.aspectRatio || 16 / 9, processingStatus: lesson?.processingStatus || (lesson?.storageKey ? "ready" : "pending"),
   });
-  const [preview, setPreview] = useState(lesson?.storageKey ? `/api/learn/media/video/${lessonId}?admin=1` : "");
+  const [preview, setPreview] = useState(lesson?.storageKey ? `/api/admin/course-draft-media?courseId=${courseId}&kind=video&key=${encodeURIComponent(lesson.storageKey)}` : "");
   const [obsoleteKey, setObsoleteKey] = useState("");
   const [status, setStatus] = useState("");
   const [progress, setProgress] = useState(0);
@@ -54,10 +54,12 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
   const [retryFile, setRetryFile] = useState(null);
   const busy = ["Inspecting video", "Preparing upload", "Uploading", "Verifying upload"].includes(status);
 
-  async function removeTemporary(storageKey) {
-    if (!storageKey || storageKey === lesson?.storageKey) return;
-    await fetch("/api/admin/course-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", courseId, lessonId, storageKey }) }).catch(() => {});
-  }
+  useEffect(() => {
+    const warn = event => { if (requestRef.current) { event.preventDefault(); event.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => { window.removeEventListener("beforeunload", warn); requestRef.current?.abort(); };
+  }, []);
+  async function removeTemporary() { /* Keep objects for saved drafts and version recovery. */ }
 
   async function upload(file) {
     if (!file || busy) return;
@@ -107,7 +109,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     setPreview(""); setStatus("Video removed — save the lesson to confirm"); setProgress(0);
   }
 
-  return <section className="direct-video-upload form-wide" aria-busy={busy}>
+  return <section className="direct-video-upload form-wide" aria-busy={busy} data-course-uploading={busy || undefined}>
     <Input type="hidden" name="storageKey" value={asset.storageKey || ""} />
     <Input type="hidden" name="videoWidth" value={asset.width || ""} />
     <Input type="hidden" name="videoHeight" value={asset.height || ""} />

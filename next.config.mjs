@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: { serverActions: { bodySizeLimit: "2mb" } },
   outputFileTracingIncludes: { "/api/**": ["./public/fonts/*.ttf"] },
   turbopack: { root: process.cwd() },
   images: {

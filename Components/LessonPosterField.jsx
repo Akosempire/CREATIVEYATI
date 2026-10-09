@@ -8,7 +8,7 @@ export default function LessonPosterField({ courseId, lessonId, lesson, orientat
   const inputRef = useRef(null);
   const [storageKey, setStorageKey] = useState(lesson?.posterStorageKey || "");
   const [posterUrl, setPosterUrl] = useState(lesson?.posterUrl || "");
-  const [preview, setPreview] = useState(lesson?.posterStorageKey ? `/api/learn/media/poster/${lessonId}?admin=1` : lesson?.posterUrl || "");
+  const [preview, setPreview] = useState(lesson?.posterStorageKey ? `/api/admin/course-draft-media?courseId=${courseId}&kind=poster&key=${encodeURIComponent(lesson.posterStorageKey)}` : lesson?.posterUrl || "");
   const [cleanupKey, setCleanupKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ export default function LessonPosterField({ courseId, lessonId, lesson, orientat
     finally { setBusy(false); if (inputRef.current) inputRef.current.value = ""; }
   }
 
-  return <section className="lesson-poster-field form-wide">
+  return <section data-course-uploading={busy || undefined} className="lesson-poster-field form-wide">
     <Input type="hidden" name="posterStorageKey" value={storageKey} /><Input type="hidden" name="obsoletePosterStorageKey" value={cleanupKey} />
     <div className="cover-uploader-heading"><div><strong>Optional custom poster</strong><small>Upload an image or paste a public poster URL.</small></div><button type="button" disabled={busy} onClick={() => inputRef.current?.click()}>{storageKey ? "Replace poster" : "Upload poster"}</button></div>
     <Input ref={inputRef} className="cover-file-input" type="file" accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif" onChange={(event) => upload(event.target.files?.[0])} />

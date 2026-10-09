@@ -11,6 +11,10 @@ export async function GET(request, { params }) {
   if (!service) return Response.json({ error: "Media storage is unavailable." }, { status: 503 });
   const { data: lesson } = await service.from("course_lessons").select("id,course_id,is_preview,status,storage_key,poster_storage_key,allow_download").eq("id", lessonId).maybeSingle();
   if (!lesson) return Response.json({ error: "Lesson media not found." }, { status: 404 });
+  if (!admin) {
+    const {data:owner}=await service.from("courses").select("status,scheduled_for,deleted_at").eq("id",lesson.course_id).maybeSingle();
+    if(!owner || owner.deleted_at || !(owner.status==="published" || (owner.status==="scheduled" && owner.scheduled_for && new Date(owner.scheduled_for).getTime()<=Date.now()))) return Response.json({error:"Course unavailable."},{status:404});
+  }
   let publicPreview = false;
   if (lesson.is_preview && lesson.status === "published") { const { data: course } = await service.from("courses").select("status,scheduled_for,deleted_at").eq("id", lesson.course_id).maybeSingle(); publicPreview = Boolean(course && !course.deleted_at && (course.status === "published" || (course.status === "scheduled" && course.scheduled_for && new Date(course.scheduled_for).getTime() <= Date.now()))); }
   let authorised = Boolean(admin) || publicPreview;

@@ -9,8 +9,8 @@ export default function CourseVideoPlayer({ lesson, admin = false, watermark = "
   const orientation = lesson.orientation === "portrait" ? "portrait" : "landscape";
   const ratio = Number(lesson.aspectRatio) || (orientation === "portrait" ? 9 / 16 : 16 / 9);
   const uploaded = lesson.sourceType === "upload" || lesson.videoProvider === "upload";
-  const src = uploaded ? `/api/learn/media/video/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.embedUrl || "";
-  const poster = lesson.posterStorageKey ? `/api/learn/media/poster/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.posterUrl || "";
+  const src = uploaded && admin && lesson.storageKey ? `/api/admin/course-draft-media?courseId=${lesson.courseId}&kind=video&key=${encodeURIComponent(lesson.storageKey)}` : uploaded ? `/api/learn/media/video/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.embedUrl || "";
+  const poster = admin && lesson.posterStorageKey ? `/api/admin/course-draft-media?courseId=${lesson.courseId}&kind=poster&key=${encodeURIComponent(lesson.posterStorageKey)}` : lesson.posterStorageKey ? `/api/learn/media/poster/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.posterUrl || "";
   if (!src) return <div className="course-video-state is-error" role="alert">Video source unavailable.</div>;
 
   return <div className={`course-video-player is-${orientation}`} style={{ "--course-video-ratio": ratio }}>

@@ -1,3 +1,12 @@
+## Course authoring workspace - 9 October 2026
+
+- [x] Private persistent course revisions, draft autosave, local recovery, conflict checks and atomic publication implemented.
+- [x] Unified editor, curriculum actions, upload/crop improvements, publishing checklist, archive/trash/restore and version history.
+- [x] Administrator reported applying `supabase/production-course-workspaces.sql` on 9 October 2026; production database verification remains part of acceptance testing.
+- [ ] Complete authenticated production acceptance tests with real media and student progress.
+
+Release and acceptance details: [COURSE-WORKSPACE-RELEASE.md](COURSE-WORKSPACE-RELEASE.md).
+
 ## Dashboard UI consistency - 7 October 2026
 
 - [x] Shared admin/student page shell, headers, metrics and stable selected sidebar geometry.

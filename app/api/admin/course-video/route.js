@@ -36,14 +36,7 @@ export async function POST(request) {
   const storageKey = safeStorageKey(body.storageKey, courseId, lessonId);
   if (!storageKey) return fail("The uploaded video reference is invalid.");
 
-  if (action === "delete") {
-    const [{ error }] = await Promise.all([
-      service.storage.from(BUCKET).remove([storageKey]),
-      service.from("media_assets").delete().eq("storage_key", storageKey),
-    ]);
-    if (error) return fail("The uploaded video could not be removed.", 502);
-    return Response.json({ ok: true });
-  }
+  if (action === "delete") return fail("Media is retained for draft and version recovery. Remove it from the course workspace instead.",409);
 
   if (action !== "finalize") return fail("Unknown upload action.");
   const parts = storageKey.split("/");

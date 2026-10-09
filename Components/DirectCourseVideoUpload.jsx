@@ -1,13 +1,11 @@
 "use client";
-import { storageUploadError } from "@/lib/storage-upload-error";
-import StreamVideo from "@/Components/StreamVideo";
 import { streamVideoId } from "@/lib/stream-reference";
 import { Input, Button } from "@/Components/FormControls";
 
 import { useEffect, useRef, useState } from "react";
 
 const MAX_BYTES = 2 * 1024 * 1024 * 1024;
-const TYPES = { "video/mp4": "mp4", "video/webm": "webm", "video/quicktime": "mov" };
+const TYPES = { "video/mp4": "mp4" };
 
 function inspectVideo(file, signalRef) {
   return new Promise((resolve, reject) => {
@@ -35,20 +33,17 @@ function inspectVideo(file, signalRef) {
   });
 }
 
-function uploadSigned(signedUrl, file, onProgress, signalRef) {
+function uploadSigned(signedUrl, file, headers, onProgress, signalRef) {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     signalRef.current = request;
-    const body = new FormData();
-    body.append("cacheControl", "3600");
-    body.append("", file);
     request.open("PUT", signedUrl);
-    request.setRequestHeader("x-upsert", "false");
+    Object.entries(headers).forEach(([name,value])=>request.setRequestHeader(name,value));
     request.upload.onprogress = (event) => { if (event.lengthComputable) onProgress(Math.round(event.loaded / event.total * 100)); };
-    request.onerror = () => reject(new Error("The direct upload connection failed."));
+    request.onerror = () => reject(new Error("R2 upload connection failed. Check your connection and the bucket CORS settings, then retry."));
     request.onabort = () => reject(new DOMException("Upload cancelled.", "AbortError"));
-    request.onload = () => request.status >= 200 && request.status < 300 ? resolve() : reject(new Error(storageUploadError(request.status, request.responseText)));
-    request.send(body);
+    request.onload = () => request.status >= 200 && request.status < 300 ? resolve() : reject(new Error(`R2 rejected the upload (HTTP ${request.status}). ${request.status === 403 ? "The upload link expired or its signature was rejected. Retry for a new link." : "Check bucket access and retry."}`));
+    request.send(file);
   });
 }
 
@@ -79,9 +74,10 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
 
   async function upload(file) {
     if (!file || busy || activeRef.current) return;
+    if(resumeRef.current?.file !== file) resumeRef.current=null;
     setRetryFile(file); setError(""); setProgress(0); setStatus("Inspecting video");
     const extension = file.name.split(".").pop()?.toLowerCase();
-    if (!TYPES[file.type] || TYPES[file.type] !== extension) { setStatus(""); setError("Use an MP4, WebM or MOV file whose extension matches its file type."); return; }
+    if (!TYPES[file.type] || TYPES[file.type] !== extension) { setStatus(""); setError("Use MP4 exported with H.264 video and AAC audio. R2 does not convert MOV files."); return; }
     if (!file.size || file.size > MAX_BYTES) { setStatus(""); setError("Video files must be no larger than 2GB."); return; }
     activeRef.current = true;
     let metadata;
@@ -93,32 +89,17 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
       const controller = new AbortController();
       requestRef.current = controller;
       let signed = resumeRef.current?.file === file ? resumeRef.current.signed : null;
-      if (!signed) {
+      if (!signed || !resumeRef.current?.uploaded) {
       const signResponse = await fetch("/api/admin/course-video", { method: "POST", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "sign", courseId, lessonId, fileName: file.name, fileSize: file.size, mimeType: file.type, durationSeconds: metadata.durationSeconds }) });
       signed = await signResponse.json().catch(() => ({ error: "Upload preparation failed. Refresh your admin session and retry." }));
       if (!signResponse.ok) throw new Error(signed.error || "A signed upload could not be created.");
       }
       if (!activeRef.current) throw new DOMException("Cancelled", "AbortError");
-      if (signed.provider === "cloudflare") resumeRef.current = { file, signed };
       newStorageKey = signed.storageKey;
-      setStatus("Uploading");
-      if (signed.provider === "cloudflare") {
-        const { Upload } = await import("tus-js-client");
-        if (!activeRef.current) throw new DOMException("Cancelled", "AbortError");
-        await new Promise((resolve, reject) => {
-          const uploader = new Upload(file, {
-            uploadUrl: signed.signedUrl, chunkSize: 50 * 1024 * 1024,
-            retryDelays: [0, 1000, 3000, 5000, 10000], storeFingerprintForResuming: false,
-            onProgress: (sent, total) => setProgress(Math.round(sent / total * 100)),
-            onSuccess: resolve, onError: () => reject(new Error("Upload interrupted. Retry to resume, or choose the file again to start a new upload.")),
-          });
-          requestRef.current = { abort: () => { uploader.abort(); reject(new DOMException("Cancelled", "AbortError")); } };
-          uploader.start();
-        });
-      } else await uploadSigned(signed.signedUrl, file, setProgress, requestRef);
-      if (signed.provider === "cloudflare") {
-        setAsset({ ...metadata, storageKey: newStorageKey, processingStatus: "processing", orientation: metadata.width >= metadata.height ? "landscape" : "portrait", aspectRatio: metadata.width / metadata.height });
-        setPreview("");
+      if (!resumeRef.current?.uploaded) {
+        setStatus("Uploading");
+        await uploadSigned(signed.signedUrl, file, signed.headers, setProgress, requestRef);
+        resumeRef.current={file,signed,uploaded:true};
       }
       setStatus("Verifying upload");
       const finalizeResponse = await fetch("/api/admin/course-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "finalize", courseId, lessonId, storageKey: newStorageKey, fileSize: file.size, mimeType: file.type, width: metadata.width, height: metadata.height, durationSeconds: metadata.durationSeconds }) });
@@ -129,12 +110,11 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
         else await removeTemporary(asset.storageKey);
       }
       if (preview.startsWith("blob:")) URL.revokeObjectURL(preview);
-      setPreview(signed.provider === "cloudflare" ? (finalized.processingStatus === "ready" ? `/api/admin/course-draft-media?courseId=${courseId}&kind=video&key=${encodeURIComponent(finalized.storageKey)}` : "") : finalized.previewUrl || metadata.objectUrl);
-      if (finalized.previewUrl || signed.provider === "cloudflare") URL.revokeObjectURL(metadata.objectUrl);
+      setPreview(finalized.previewUrl || metadata.objectUrl);
+      if (finalized.previewUrl) URL.revokeObjectURL(metadata.objectUrl);
       resumeRef.current = null;
       setAsset(finalized);
       setStatus("Upload ready — save the lesson to apply it");
-      if (finalized.processingStatus !== "ready") setStatus("Upload complete. Cloudflare is processing the video; you can save this draft.");
       setProgress(100);
     } catch (uploadError) {
       URL.revokeObjectURL(metadata.objectUrl);
@@ -144,35 +124,6 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     } finally { activeRef.current = false; requestRef.current = null; if (inputRef.current) inputRef.current.value = ""; }
   }
 
-  useEffect(() => {
-    if (!streamVideoId(asset.storageKey) || asset.processingStatus === "failed") return;
-    let cancelled = false;
-    let timer;
-    async function check() {
-      try {
-        const response = await fetch("/api/admin/course-video", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "status", courseId, lessonId, storageKey: asset.storageKey }) });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Processing status is unavailable.");
-        if (cancelled) return;
-        if (result.processingStatus === "ready") {
-          setAsset(result);
-          setPreview(`/api/admin/course-draft-media?courseId=${courseId}&kind=video&key=${encodeURIComponent(result.storageKey)}`);
-          setStatus("Video processing complete. Ready for lesson playback.");
-          setError("");
-        } else timer = setTimeout(check, 10000);
-      } catch (failure) {
-        if (!cancelled) {
-          setError(failure.message);
-          if (failure.message.includes("different export")) setAsset(previous => ({ ...previous, processingStatus: "failed" }));
-          else timer = setTimeout(check, 30000);
-        }
-      }
-    }
-    if (asset.processingStatus !== "ready") check();
-
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [asset.storageKey, asset.processingStatus, courseId, lessonId]);
-
   async function remove() {
     if (!asset.storageKey || busy || !window.confirm("Remove this lesson video after the lesson is saved?")) return;
     if (asset.storageKey === lesson?.storageKey) setObsoleteKey(asset.storageKey); else await removeTemporary(asset.storageKey);
@@ -181,7 +132,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     setPreview(""); setStatus("Video removed — save the lesson to confirm"); setProgress(0);
   }
 
-  const Video = streamVideoId(asset.storageKey) ? StreamVideo : "video";
+  const Video = "video";
   return <section className="direct-video-upload form-wide" aria-busy={busy} data-course-uploading={busy || undefined}>
     <Input type="hidden" name="storageKey" value={asset.storageKey || ""} />
     <Input type="hidden" name="videoWidth" value={asset.width || ""} />
@@ -192,15 +143,15 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     <Input type="hidden" name="processingStatus" value={asset.processingStatus || "pending"} />
     <Input type="hidden" name="obsoleteStorageKey" value={obsoleteKey} />
     <div className="upload-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); upload(event.dataTransfer.files?.[0]); }}>
-      <strong>{asset.storageKey ? "Uploaded lesson video" : "Drop an MP4, WebM or MOV here"}</strong>
-      <small>Uploaded directly to Cloudflare Stream · maximum 2GB</small>
+      <strong>{asset.storageKey ? "Uploaded lesson video" : "Drop an MP4 here"}</strong>
+      <small>Private Cloudflare R2 storage; MP4 H.264/AAC · maximum 2GB</small>
       <div className="row-actions"><Button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{asset.storageKey ? "Replace video" : "Choose video"}</Button>{busy && <Button variant="secondary" type="button" onClick={() => { activeRef.current = false; requestRef.current?.abort(); }}>Cancel upload</Button>}{asset.storageKey && !busy && <Button variant="danger" type="button" onClick={remove}>Remove video</Button>}</div>
-      <Input ref={inputRef} className="cover-file-input" aria-label="Upload lesson video" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => { resumeRef.current = null; upload(event.target.files?.[0]); }} />
+      <Input ref={inputRef} className="cover-file-input" aria-label="Upload lesson video" type="file" accept=".mp4,video/mp4" onChange={(event) => { resumeRef.current = null; upload(event.target.files?.[0]); }} />
     </div>
     {busy && <div className="upload-status"><span>{status}</span><progress aria-label="Video upload progress" max="100" value={progress}>{progress}%</progress></div>}
     {!busy && status && <p className="field-success">{status}</p>}
     {error && <div className="upload-error"><p>{error}</p>{retryFile && <Button variant="secondary" type="button" disabled={busy} onClick={() => upload(retryFile)}>Retry upload</Button>}</div>}
-    {preview && <Video className={`course-admin-video is-${asset.orientation}`} src={preview} controls preload="metadata" playsInline />}
+    {preview && <Video className={`course-admin-video is-${asset.orientation}`} src={preview} controls preload="metadata" playsInline onError={() => setError("This video could not play. Use H.264/AAC MP4 and verify storage access.")} />}
     {asset.width && <small className="media-facts">{asset.width} × {asset.height} · {asset.durationSeconds}s · {asset.orientation} · {Number(asset.aspectRatio).toFixed(3)}:1</small>}
   </section>;
 }

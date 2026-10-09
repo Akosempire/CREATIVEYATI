@@ -1,4 +1,5 @@
-import { streamPlayback } from "@/lib/cloudflare-stream";
+import { r2Playback } from "@/lib/r2";
+import { isR2Video } from "@/lib/r2-reference";
 import { streamVideoId } from "@/lib/stream-reference";
 import {
   createSupabaseServiceClient,
@@ -25,13 +26,19 @@ export async function GET(request) {
       { error: "Invalid media reference." },
       { status: 400 },
     );
-  if (kind === "video" && streamVideoId(key)) {
-    try { return Response.json({ url: await streamPlayback(createSupabaseServiceClient(), key, id) }, { headers: { "Cache-Control": "private, no-store" } }); }
-    catch (error) { return Response.json({ error: error.message }, { status: 502 }); }
+  if (kind === "video" && streamVideoId(key)) return Response.json({error:"This legacy Stream video needs migration. Upload its original MP4 in the course editor."},{status:409});
+  if (kind === "video" && isR2Video(key)) {
+    try {
+      const link=await r2Playback(createSupabaseServiceClient(), key, id, url.searchParams.get("download")==="1");
+      if(url.searchParams.get("link")==="1") return Response.json({url:link},{headers:{"Cache-Control":"private, no-store"}});
+      return new Response(null,{status:302,headers:{Location:link,"Cache-Control":"private, no-store"}});
+    } catch {return Response.json({error:"R2 playback is unavailable. Check the saved video and storage configuration."},{status:502});}
   }
+
   const { data, error } = await createSupabaseServiceClient()
     .storage.from(kind === "video" ? "course-videos" : "course-posters")
-    .createSignedUrl(key, 120);
+    .createSignedUrl(key, 120, url.searchParams.get("download")==="1" ? {download:true} : undefined);
+  if(!error && url.searchParams.get("link")==="1") return Response.json({url:data.signedUrl},{headers:{"Cache-Control":"private, no-store"}});
   return error
     ? Response.json({ error: "Media unavailable." }, { status: 404 })
     : Response.redirect(data.signedUrl);

@@ -26,7 +26,7 @@ with sync_playwright() as p:
   data=route.request.post_data_json;requests.append(data)
   if data['action']=='sign':
    if fail[0]: route.fulfill(status=502,json={'error':'Test storage connection failed. Retry.'})
-   else: route.fulfill(json={'signedUrl':'http://localhost:3000/test-storage-video','storageKey':key})
+   else: route.fulfill(json={'provider':'r2','headers':{'Content-Type':'video/mp4','If-None-Match':'*'},'signedUrl':'http://localhost:3000/test-storage-video','storageKey':key})
   else: route.fulfill(json={'storageKey':key,'previewUrl':'','processingStatus':'ready','width':640,'height':360,'durationSeconds':2,'orientation':'landscape','aspectRatio':16/9})
  page.route('**/api/admin/course-video',video_api)
  page.route('**/test-storage-video',lambda route:route.fulfill(status=200,body='{}'))
@@ -41,7 +41,7 @@ with sync_playwright() as p:
  def pdf_api(route):
   body=route.request.post_data_json;pdf_calls.append(body)
   assert len(route.request.post_data)<2000
-  if body['action']=='sign':route.fulfill(json={'storageKey':'00000000-0000-4000-8000-000000000099/draft/33333333-3333-4333-8333-333333333333.pdf','signedUrl':'http://localhost:3000/test-storage-pdf'})
+  if body['action']=='sign':route.fulfill(json={'storageKey':'00000000-0000-4000-8000-000000000099/draft/33333333-3333-4333-8333-333333333333.pdf','provider':'r2','headers':{'Content-Type':'video/mp4','If-None-Match':'*'},'signedUrl':'http://localhost:3000/test-storage-pdf'})
   else:route.fulfill(json={'id':'33333333-3333-4333-8333-333333333333','title':'Workbook','storageKey':body['storageKey'],'fileSize':body['fileSize'],'allowDownload':True,'previewAllowed':False})
  page.route('**/api/admin/course-draft-resource',pdf_api)
  page.route('**/test-storage-pdf',lambda r:r.fulfill(status=200,body='{}'))

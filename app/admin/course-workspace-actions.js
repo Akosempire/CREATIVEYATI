@@ -1,6 +1,7 @@
 "use server";
 import { streamVideoId } from "@/lib/stream-reference";
-import { streamJson } from "@/lib/cloudflare-stream";
+import { isR2Video } from "@/lib/r2-reference";
+import { r2Copy } from "@/lib/r2";
 import { randomUUID } from "node:crypto";
 import { loadCourseWorkspace } from "@/lib/data/course-workspace";
 import { revalidatePath } from "next/cache";
@@ -90,10 +91,7 @@ export async function publishWorkspace(id, revision) {
             .eq("storage_key", lesson.storage_key)
             .eq("processing_status", "ready")
             .maybeSingle();
-          if (asset && streamVideoId(lesson.storage_key)) {
-            const video = await streamJson(`/${streamVideoId(lesson.storage_key)}`);
-            if (!video.readyToStream || !video.requireSignedURLs) issues.push({ step: "curriculum", field: lesson.id, message: `${lesson.title}: protected Stream video is not ready.` });
-          }
+          if (streamVideoId(lesson.storage_key)) issues.push({step:"curriculum",field:lesson.id,message:`${lesson.title}: replace this legacy Stream video with an MP4 upload to R2 before publishing.`});
           if (e || !asset)
             issues.push({
               step: "curriculum",
@@ -232,6 +230,11 @@ export async function duplicateWorkspace(id) {
     async function copy(bucket, key) {
       if (!key) return "";
       if (bucket === "course-videos" && streamVideoId(key)) return `${nextId}/${randomUUID()}/${streamVideoId(key)}.stream`;
+      if (bucket === "course-videos" && isR2Video(key)) {
+        const destination=`${nextId}/r2/${randomUUID()}/${randomUUID()}.mp4`;
+        await r2Copy(key,destination);
+        return destination;
+      }
       const destination = `${nextId}/copied/${randomUUID()}.${key.split(".").pop()}`;
       const { error } = await db.storage.from(bucket).copy(key, destination);
       if (error)

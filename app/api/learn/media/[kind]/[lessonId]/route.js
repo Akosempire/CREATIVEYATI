@@ -1,4 +1,5 @@
-import { streamPlayback } from "@/lib/cloudflare-stream";
+import { r2Playback } from "@/lib/r2";
+import { isR2Video } from "@/lib/r2-reference";
 import { streamVideoId } from "@/lib/stream-reference";
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient, getAdminUser, getStudentUser } from "@/lib/supabase/server";
@@ -30,13 +31,17 @@ export async function GET(request, { params }) {
   if (!storageKey) return Response.json({ error: "This media file is unavailable." }, { status: 404 });
   const download = kind === "video" && url.searchParams.get("download") === "1";
   if (download && !lesson.allow_download) return Response.json({ error: "Downloading is disabled for this lesson." }, { status: 403 });
-  if (kind === "video" && streamVideoId(storageKey)) {
+  if (kind === "video" && streamVideoId(storageKey)) return Response.json({error:"This legacy Stream video needs migration. Upload its original MP4 in the course editor."},{status:409});
+  if (kind === "video" && isR2Video(storageKey)) {
     try {
-      const playback = await streamPlayback(service, storageKey, lesson.course_id, download);
-      return download ? new Response(null, { status: 302, headers: { Location: playback, "Cache-Control": "private, no-store" } }) : Response.json({ url: playback }, { headers: { "Cache-Control": "private, no-store" } });
-    } catch (error) { return Response.json({ error: error.message }, { status: 502 }); }
+      const link=await r2Playback(service, storageKey, lesson.course_id, download);
+      if(url.searchParams.get("link")==="1") return Response.json({url:link},{headers:{"Cache-Control":"private, no-store"}});
+      return new Response(null,{status:302,headers:{Location:link,"Cache-Control":"private, no-store"}});
+    } catch {return Response.json({error:"R2 playback is unavailable. Check the saved video and storage configuration."},{status:502});}
   }
+
   const { data, error } = await service.storage.from(bucket).createSignedUrl(storageKey, 120, download ? { download: true } : undefined);
   if (error || !data?.signedUrl) return Response.json({ error: "A temporary media link could not be created." }, { status: 502 });
+  if(url.searchParams.get("link")==="1") return Response.json({url:data.signedUrl},{headers:{"Cache-Control":"private, no-store"}});
   return NextResponse.redirect(data.signedUrl);
 }

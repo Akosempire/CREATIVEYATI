@@ -193,7 +193,7 @@ export default function DirectCourseVideoUpload({ courseId, lessonId, lesson }) 
     <Input type="hidden" name="obsoleteStorageKey" value={obsoleteKey} />
     <div className="upload-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); upload(event.dataTransfer.files?.[0]); }}>
       <strong>{asset.storageKey ? "Uploaded lesson video" : "Drop an MP4, WebM or MOV here"}</strong>
-      <small>Uploaded directly to private storage · maximum 2GB</small>
+      <small>Uploaded directly to Cloudflare Stream · maximum 2GB</small>
       <div className="row-actions"><Button type="button" onClick={() => inputRef.current?.click()} disabled={busy}>{asset.storageKey ? "Replace video" : "Choose video"}</Button>{busy && <Button variant="secondary" type="button" onClick={() => { activeRef.current = false; requestRef.current?.abort(); }}>Cancel upload</Button>}{asset.storageKey && !busy && <Button variant="danger" type="button" onClick={remove}>Remove video</Button>}</div>
       <Input ref={inputRef} className="cover-file-input" aria-label="Upload lesson video" type="file" accept=".mp4,.webm,.mov,video/mp4,video/webm,video/quicktime" onChange={(event) => { resumeRef.current = null; upload(event.target.files?.[0]); }} />
     </div>

@@ -100,3 +100,13 @@ Browser tests use simulated responses, not real production email, storage, payme
 - Check the live course-videos bucket size/MIME settings before signing. Project-wide limits remain independently enforced by Supabase.
 - Tests: check-storage-upload-error.mjs and check-video-upload-limits.mjs. Actual user rejection is not yet classified without file size or storage response.
 
+
+### Cloudflare-only course video uploads
+- All new video signing uses Cloudflare Stream, including MOV. Removed the default
+  Supabase signing path; authorization failure does not fall back to another provider.
+- Existing Supabase video references and playback remain supported.
+- Production and Preview provider flags are set to cloudflare.
+- Read-only probe with production Vercel credentials returned HTTP 403/code 10002.
+  The subsequently supplied token also returned the same error for the supplied account.
+  A working Stream-authorized credential is still required before actual uploads work.
+- verify-cloudflare-access.mjs prints only HTTP status and API error codes, not secrets.

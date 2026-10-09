@@ -1,7 +1,6 @@
 import { streamConfigured } from "@/lib/cloudflare-stream";
 import { streamVideoId } from "@/lib/stream-reference";
 import { courseStreamUpload } from "@/lib/course-stream-upload";
-import { randomUUID } from "node:crypto";
 import { createSupabaseServiceClient, getAdminUser } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -30,21 +29,10 @@ export async function POST(request) {
     const fileSize = Number(body.fileSize);
     if (!MIME_EXTENSIONS[mimeType] || extension !== MIME_EXTENSIONS[mimeType]) return fail("Use an MP4, WebM or MOV file whose extension matches its content type.");
     if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_BYTES) return fail("Video files must be no larger than 2GB.");
-    if (process.env.COURSE_VIDEO_UPLOAD_PROVIDER === "cloudflare") {
-      if (!streamConfigured()) return fail("Cloudflare Stream credentials are missing.", 503);
-      try { return Response.json(await courseStreamUpload(service, { ...body, action: "sign" })); }
-      catch (error) { return fail(error.message, 502); }
-    }
-    const { data: bucket, error: bucketError } = await service.storage.getBucket(BUCKET);
-    if (bucketError || !bucket) return fail("The course-videos storage bucket could not be checked. Verify that it exists in the live Supabase project.", 502);
-    if (Number(bucket.file_size_limit) > 0 && fileSize > Number(bucket.file_size_limit))
-      return fail(`This video exceeds the course-videos bucket limit of ${Math.round(Number(bucket.file_size_limit) / 1024 / 1024)} MB. Adjust the bucket and global storage limits, or use a smaller video.`, 413);
-    if (bucket.allowed_mime_types?.length && !bucket.allowed_mime_types.some(type => type === mimeType || type === "*/*" || type === "video/*"))
-      return fail("The course-videos bucket does not allow this video format. Enable its MIME type in Supabase Storage.");
-    const storageKey = `${courseId}/${lessonId}/${randomUUID()}.${extension}`;
-    const { data, error } = await service.storage.from(BUCKET).createSignedUploadUrl(storageKey);
-    if (error || !data?.signedUrl) return fail("The signed upload could not be created. Apply the course workflow migration and retry.", 502);
-    return Response.json({ signedUrl: data.signedUrl, storageKey, token: data.token });
+    // All new course videos go to Stream. Existing Supabase media stays playable.
+    if (!streamConfigured()) return fail("Cloudflare Stream credentials are missing. Configure the account ID and Stream API token in Vercel.", 503);
+    try { return Response.json(await courseStreamUpload(service, { ...body, action: "sign" })); }
+    catch (error) { return fail(error.message, 502); }
   }
 
   if (streamVideoId(body.storageKey) && ["finalize", "status"].includes(action)) {

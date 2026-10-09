@@ -54,8 +54,19 @@ export default function CourseWorkspace({
     (key) => !issues.some((issue) => issue.step === key),
   ).length;
   function edit(update) {
+    const current = w.current.current;
+    const next = typeof update === "function" ? update(current) : update;
+    const activeLesson = document.querySelector("[data-course-uploading=true]")?.closest(".lesson-editor");
+    if (activeLesson) {
+      const owner = current.sections.find(s => s.lessons.some(l => l.id === activeLesson.id));
+      const nextOwner = next.sections.find(s => s.lessons.some(l => l.id === activeLesson.id));
+      if (!nextOwner || owner?.id !== nextOwner.id) {
+        notify("Finish or cancel this lesson's upload before removing or moving it.", "error");
+        return;
+      }
+    }
     setServerIssues([]);
-    w.change(update);
+    w.change(next);
   }
   function sectionChange(id, update) {
     edit((d) => ({
@@ -395,6 +406,7 @@ export default function CourseWorkspace({
         )}
         {step === "curriculum" && (
           <>
+            <div className="cw-builder-heading"><h3>Course content</h3><p>Add a module, name your lesson, then upload its video. Changes save automatically.</p></div>
             {!doc.sections.length && (
               <div className="cw-empty">
                 <h3>Build your first module</h3>
@@ -420,7 +432,7 @@ export default function CourseWorkspace({
                   setDrag(null);
                 }}
               >
-                <div className="cw-module-toolbar">
+                <details className="cw-organize"><summary>Module options</summary><div className="cw-module-toolbar">
                   <span
                     draggable
                     onDragStart={() => setDrag({ type: "module", index })}
@@ -454,7 +466,7 @@ export default function CourseWorkspace({
                   >
                     Remove
                   </Button>
-                </div>
+                </div></details>
                 <label>
                   Module title
                   <Input
@@ -517,7 +529,7 @@ export default function CourseWorkspace({
                           : "Draft"}
                       </small>
                     </summary>
-                    <div className="cw-module-toolbar">
+                    <details className="cw-organize"><summary>Reorder or move lesson</summary><div className="cw-module-toolbar">
                       <span
                         draggable
                         onDragStart={(e) => {
@@ -567,7 +579,7 @@ export default function CourseWorkspace({
                           ))}
                         </select>
                       </label>
-                    </div>
+                    </div></details>
                     <CourseLessonEditor
                       workspace
                       course={doc}

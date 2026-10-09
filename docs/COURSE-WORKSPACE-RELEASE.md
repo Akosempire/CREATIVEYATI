@@ -80,3 +80,17 @@ Browser tests use simulated responses, not real production email, storage, payme
   mounts a fresh editor.
 - `scripts/check-course-editor-stability.py` covers server-prop refresh, Enter,
   idle autosave, button gaps and stable save-bar height at 1440/768/390 px.
+
+### Upload continuity review
+- Autosave uses an authenticated same-origin JSON endpoint, keeping cookie refresh
+  responses separate from React Server Component navigation/rendering.
+- New courses keep a stable `new?draft=ID` URL; reopening it loads the actual saved
+  workspace revision. Autosave no longer rewrites it to a different route segment.
+- Navigation warns during uploads even when text has saved; active lessons cannot
+  be removed or moved into another module until their upload finishes/cancels.
+- Module organization controls and optional lesson metadata are collapsed while
+  remaining mounted, keeping the upload and lesson title easy to reach.
+- `check-course-upload-stability.py` exercises real JSON client transport with
+  simulated database/storage: delayed upload, concurrent edits/autosave, prop
+  refresh, removal/navigation protection, and final media-reference persistence.
+  Live signed-in storage delivery is not covered by these simulated responses.

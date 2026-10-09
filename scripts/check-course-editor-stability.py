@@ -31,6 +31,7 @@ with sync_playwright() as p:
  page.wait_for_timeout(1600)
  assert lesson.input_value()=='Retained lesson text'
  assert page.locator('.lesson-editor').evaluate('(node)=>node.open')
+ page.get_by_text('Module options',exact=True).click()
  for width in [1440,768,390]:
   page.set_viewport_size({'width':width,'height':1000})
   buttons=page.locator('.reorder-buttons').first.locator('button')

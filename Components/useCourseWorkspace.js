@@ -1,6 +1,15 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveWorkspace } from "@/app/admin/course-workspace-actions";
+// JSON saves cannot replace the active React page when auth cookies refresh.
+async function saveWorkspace(id, revision, document) {
+  const response = await fetch("/api/admin/course-workspace", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, revision, document }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!result) throw new Error("The save response was interrupted.");
+  return result;
+}
 import { AUTOSAVE_DELAY } from "@/lib/course-workspace";
 export default function useCourseWorkspace(
   initial,
@@ -86,12 +95,6 @@ export default function useCourseWorkspace(
               localStorage.removeItem(storageKey);
             } catch {}
           }
-          if (initial.isNew)
-            window.history.replaceState(
-              null,
-              "",
-              `/admin/courses/${snapshot.id}/edit`,
-            );
           return true;
         } catch {
           setState("failed");
@@ -107,7 +110,7 @@ export default function useCourseWorkspace(
       if (ok && dirty.current) return save();
       return ok;
     },
-    [backup, storageKey, initial.isNew, saveAction],
+    [backup, storageKey, saveAction],
   );
   const change = useCallback(
     (update) => {
@@ -161,9 +164,9 @@ export default function useCourseWorkspace(
       if (
         link &&
         !link.target &&
-        dirty.current &&
+        (dirty.current || window.document.querySelector("[data-course-uploading=true]")) &&
         !window.confirm(
-          "Changes are not saved to the server yet. Leave with a browser recovery copy?",
+          "Leaving will interrupt any active upload. Unsaved text is kept in this browser. Leave the editor?",
         )
       ) {
         event.preventDefault();

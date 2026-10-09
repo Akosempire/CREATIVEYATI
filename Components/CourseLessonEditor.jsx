@@ -51,8 +51,6 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
     {sourceChanged && initialSource === "upload" && <Input type="hidden" name="obsoleteStorageKey" value={lesson.storageKey || ""} />}
     {!hasVideo && lesson?.storageKey && <Input type="hidden" name="obsoleteStorageKey" value={lesson.storageKey} />}
     <label>Lesson title<Input name="title" defaultValue={lesson?.title} onChange={event => { if (!slugEdited.current) setSlug(event.target.value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")); }} required /></label>
-    <label>Lesson URL slug<Input name="slug" value={slug} onChange={event => { slugEdited.current = true; setSlug(event.target.value); }} pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>
-    <label className="form-wide">Short description<CourseTextEditor name="description" rows={3} defaultValue={lesson?.description} /></label>
     <fieldset className="lesson-choice form-wide"><legend>Content type</legend><div>{lessonTypes.map(([value, label]) => <label key={value}><Input type="radio" name="lessonType" value={value} checked={lessonType === value} onChange={() => { if (!formRef.current?.querySelector("[data-course-uploading=true]")) setLessonType(value); }} />{label}</label>)}</div></fieldset>
 
     {hasVideo && <>
@@ -81,6 +79,10 @@ export default function CourseLessonEditor({ course, section, sections, lesson, 
     {["external", "mixed"].includes(lessonType) && <label className="form-wide">External resource URL<Input type="url" name="externalUrl" defaultValue={lesson?.externalUrl} placeholder="https://…" /></label>}
     {lessonType === "pdf" && <p className="form-warning form-wide">Upload the private PDF in Downloadable resources below. It will be saved with this draft.</p>}
     {lesson && !workspace && <label>Move to section<Select name="targetSectionId" defaultValue={section.id}>{sections.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</Select></label>}
+    <details className="cw-options form-wide"><summary>Lesson details <small>Description & URL</small></summary><div className="cw-options-grid">
+    <label>Lesson URL slug<Input name="slug" value={slug} onChange={event => { slugEdited.current = true; setSlug(event.target.value); }} pattern="[a-z0-9]+(-[a-z0-9]+)*" required /></label>
+    <label className="form-wide">Short description<CourseTextEditor name="description" rows={3} defaultValue={lesson?.description} /></label>
+    </div></details>
     <label>Publishing status<Select name="lessonStatus" defaultValue={lesson?.status || "draft"}><option value="draft">Draft</option><option value="published">Ready to publish</option><option value="archived">Archived</option></Select></label>
     <label className="check-label"><Input type="checkbox" name="isPreview" defaultChecked={lesson?.isPreview} />Free preview lesson</label>
     <div className="lesson-form-actions form-wide"><Button type={workspace ? "button" : "submit"} onClick={workspace ? () => saveAction() : undefined}>{workspace ? "Save draft" : lesson ? "Save lesson" : "Add lesson"}</Button>{lesson && <Button variant="secondary" type={workspace ? "button" : "submit"} formAction={workspace ? undefined : duplicateAction} onClick={workspace ? () => duplicateAction() : undefined}>Duplicate lesson</Button>}{lesson && <Button variant="danger" type={workspace ? "button" : "submit"} formAction={workspace ? undefined : deleteAction} onClick={(event) => { if (!window.confirm("Remove this lesson from the working draft? Existing student progress will be retained.")) event.preventDefault(); else if (workspace) deleteAction(); }}>Remove lesson</Button>}</div>

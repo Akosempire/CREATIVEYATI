@@ -2081,3 +2081,11 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
  .course-workspace .cw-save-bar>[role=status] { flex-basis:100%; }
  .course-workspace .cw-footer>span { align-items:flex-start; flex-direction:column; gap:8px; }
 }
+
+.course-workspace .cw-builder-heading { margin-bottom:24px; }
+.course-workspace .cw-builder-heading h3 { margin:0 0 8px; }
+.course-workspace .cw-builder-heading p { color:#64736a; line-height:1.6; margin:0; }
+.course-workspace .cw-organize { margin:0 0 16px; }
+.course-workspace .cw-organize>summary { cursor:pointer; padding:10px 0; color:#496455; font-size:13px; }
+.course-workspace .cw-organize .cw-module-toolbar { margin-top:8px; }
+.course-workspace .curriculum-section>label { display:grid; gap:8px; margin-bottom:16px; font-weight:600; }

@@ -1,4 +1,6 @@
 "use client";
+import AdminPreviewFrame from "@/Components/AdminPreviewFrame";
+import CourseOverview from "@/Components/CourseOverview";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -663,45 +665,8 @@ export default function CourseWorkspace({
               Private preview of the working draft. Ready lessons will be shown
               to students after publishing.
             </p>
-            <h2>{doc.title || "Untitled course"}</h2>
-            <p>{doc.shortDescription}</p>
-            {doc.coverImageUrl && (
-              <div
-                className="cw-cover"
-                style={{
-                  backgroundImage: `url(${JSON.stringify(doc.coverImageUrl)})`,
-                  backgroundPosition: `${doc.coverFocalX ?? 50}% ${doc.coverFocalY ?? 50}%`,
-                }}
-                role="img"
-                aria-label="Course cover"
-              />
-            )}
-            <p>{doc.description}</p>
-            <p>
-              <strong>
-                {doc.isFree
-                  ? "Free"
-                  : formatMoney(doc.priceMinor || 0, doc.currency || "NGN")}
-              </strong>{" "}
-              ? {doc.instructor || "Instructor not assigned"} ?{" "}
-              {doc.language || "English"} ? {doc.difficulty || "All levels"}
-            </p>
-            {[
-              ["What you will learn", doc.learningOutcomes],
-              ["Requirements", doc.requirements],
-              ["Who this is for", doc.targetAudience],
-            ]
-              .filter(([, items]) => items?.length)
-              .map(([title, items]) => (
-                <section key={title}>
-                  <h3>{title}</h3>
-                  <ul>
-                    {items.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
+            <AdminPreviewFrame courseTitle={doc.title} onExit={() => setStep("details")}><CourseOverview course={doc} price={doc.isFree ? 0 : doc.priceMinor || 0} priceLabel={doc.isFree ? "Free" : formatMoney(doc.priceMinor || 0, doc.currency || "NGN")} preview /></AdminPreviewFrame>
+            <h2>Lesson playback preview</h2>
             {doc.sections.map((s) => (
               <section key={s.id}>
                 <h3>{s.title || "Untitled module"}</h3>

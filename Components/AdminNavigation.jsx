@@ -5,6 +5,7 @@ const groups=[
  ["Workspace",[["/admin","Overview","home"],["/admin/activity","Activity log","folder"]]],
  ["Studio",[["/admin/videos","Projects","video"],["/admin/categories","Categories","folder"],["/admin/enquiries","Enquiries","mail"]]],
  ["Academy",[["/admin/courses","Courses","book"],["/admin/students","Students","user"],["/admin/certificates","Certificates","award"],["/admin/course-settings","Academy settings","settings"]]],
+ ["Communications",[["/admin/communications/messages","Messages","mail"],["/admin/communications/newsletters","Newsletters","mail"],["/admin/communications/templates","Templates","doc"],["/admin/communications/history","History","folder"]]],
  ["Commerce",[["/admin/orders","Course orders","folder"],["/admin/invoices","Client invoices & receipts","book"],["/admin/payments","Payments","folder"],["/admin/coupons","Coupons","folder"]]],
  ["Website",[["/admin/content","Website content","folder"],["/admin/content/services","Services media","video"],["/admin/settings/social","Social profiles","user"]]],
  ["Settings",[["/admin/settings/documents","Receipts & certificates","award"],["/admin/security","Account security","user"],["/admin/settings/email","Email delivery","mail"],["/admin/settings","General settings","settings"]]],

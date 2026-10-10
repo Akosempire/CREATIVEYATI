@@ -1,3 +1,4 @@
+import CourseCommunity from "@/Components/CourseCommunity";
 import SubmitButton from "@/Components/SubmitButton";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -62,6 +63,7 @@ export default async function LessonPage({ params }) {
       <CourseLessonContent lesson={lesson} watermark={watermark} />
       <ResourceList title="Lesson materials" resources={lesson.resources} />
       <ResourceList title="Course materials" resources={course.materials} />
+      <CourseCommunity courseId={course.id} />
       <div className="lesson-progress-line">
         <span className="progress-track"><i style={{ width: `${percentage}%` }} /></span>
         <small>Lesson {index + 1} of {lessons.length} · {percentage}% complete</small>

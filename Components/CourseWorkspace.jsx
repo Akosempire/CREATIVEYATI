@@ -1,5 +1,6 @@
 "use client";
 import AdminPreviewFrame from "@/Components/AdminPreviewFrame";
+import CourseCommunityEditor from "@/Components/CourseCommunityEditor";
 import CourseOverview from "@/Components/CourseOverview";
 import { useState } from "react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ const steps = [
   ["details", "Basic information"],
   ["curriculum", "Modules & lessons"],
   ["materials", "Resources"],
+  ["community", "Community"],
   ["pricing", "Pricing"],
   ["preview", "Preview"],
   ["publish", "Review & publish"],
@@ -659,6 +661,7 @@ export default function CourseWorkspace({
             onChange={(materials) => edit((d) => ({ ...d, materials }))}
           />
         )}
+        {step === "community" && <CourseCommunityEditor courseId={doc.id} beforeSave={w.save} />}
         {step === "preview" && (
           <article className="admin-course-preview">
             <p className="status-note">

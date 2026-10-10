@@ -1,3 +1,4 @@
+import EmailPreferences from "@/Components/EmailPreferences";
 import { Input } from "@/Components/FormControls";
 import { PageHeader } from "@/Components/DashboardPageShell";
 import Link from "next/link";
@@ -19,6 +20,7 @@ export default async function StudentProfilePage({ searchParams }) {
       <label>Email<Input value={user?.email || ""} disabled /><small>Contact support to change the email on your account.</small></label>
       <SubmitButton className="button" pendingLabel="Saving...">Save profile</SubmitButton>
     </form>
+    <EmailPreferences />
     <p><Link className="inline-link" href="/learn/certificates">My certificates</Link></p>
   </section>;
 }

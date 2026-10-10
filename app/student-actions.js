@@ -66,7 +66,7 @@ export async function studentRegister(formData) {
   const next = safeNext(formData.get("next"));
   if (password.length < 12 || password !== String(formData.get("confirmPassword") || "") || !fullName || fullName.length > 120) redirect(`/register?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Enter your name and matching passwords of at least 12 characters.")}`);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName }, emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}` } });
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName, newsletter_opt_in: formData.get("newsletter") === "on" }, emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}` } });
   if (error) redirect(`/register?next=${encodeURIComponent(next)}&error=Registration+could+not+be+completed.+Please+try+again.`);
   // Profile data is written only after authentication, never from an unconfirmed signup result.
   if (data.session) { await ensureStudentProfile(data.user); redirect(next); }

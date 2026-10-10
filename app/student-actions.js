@@ -8,27 +8,32 @@ import { issueCertificateFor } from "@/lib/data/certificates";
 import { safeNext } from "@/lib/auth/redirect";
 import { canResetPassword, clearPasswordRecovery, grantPasswordRecovery } from "@/lib/auth/recovery";
 import { ensureStudentProfile } from "@/lib/auth/student-profile";
+import { markCodeSent, normalizeEmail } from "@/lib/auth/code-cooldown";
+
+const NEW_CODE_SENT = "A new code is on its way. Use only the code in the newest email — earlier codes stop working. Not there after a minute? Check Spam and Promotions. If your email is already verified, just sign in.";
 
 export async function resendStudentVerification(formData) {
   const supabase = await createSupabaseAuthClient();
   const next = safeNext(formData.get("next"));
-  const email = String(formData.get("email") || "").trim();
+  const email = normalizeEmail(formData.get("email"));
   (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
   const site = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
   if (!supabase) redirect("/verify-email?error=Email+verification+is+temporarily+unavailable.");
-  const { error } = await supabase.auth.resend({ type: "signup", email: String(formData.get("email") || "").trim(), options: { emailRedirectTo: site + "/auth/callback?next=" + encodeURIComponent(next) } });
+  const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: site + "/auth/callback?next=" + encodeURIComponent(next) } });
   if (error) {
     console.error("Auth verification email failed", { code: error.code, status: error.status });
-    redirect("/verify-email?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "Too many requests. Please wait before requesting another email." : "The email request could not be completed. Please try again later."));
+    if (error.status === 429) await markCodeSent();
+    redirect("/verify-email?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "A code was sent moments ago. Wait a minute, then check your inbox and Spam before asking for another." : "The email request could not be completed. Please try again later."));
   }
-  redirect("/verify-email?next=" + encodeURIComponent(next) + "&message=If+verification+is+needed%2C+an+email+has+been+sent.");
+  await markCodeSent();
+  redirect("/verify-email?next=" + encodeURIComponent(next) + "&message=" + encodeURIComponent(NEW_CODE_SENT));
 }
 
 export async function verifyStudentEmail(formData) {
   const supabase = await createSupabaseAuthClient();
   const next = safeNext(formData.get("next"));
   if (!supabase) redirect("/login?error=Sign-in+is+unavailable");
-  const email = String(formData.get("email") || "").trim();
+  const email = normalizeEmail(formData.get("email"));
   const token = String(formData.get("token") || "").replace(/\s/g, "");
   (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
   if (!/^[0-9]{6,10}$/.test(token)) redirect("/verify-email?next="+encodeURIComponent(next)+"&error=Enter+the+code+from+your+latest+verification+email.");
@@ -48,7 +53,7 @@ export async function studentSignIn(formData) {
   const supabase = await createSupabaseAuthClient();
   if (!supabase) redirect("/login?error=Student+sign-in+is+not+configured");
   const next = safeNext(formData.get("next"));
-  const { data, error } = await supabase.auth.signInWithPassword({ email: String(formData.get("email") || "").trim(), password: String(formData.get("password") || "") });
+  const { data, error } = await supabase.auth.signInWithPassword({ email: normalizeEmail(formData.get("email")), password: String(formData.get("password") || "") });
   if (error?.code === "email_not_confirmed") {
     await resendStudentVerification(formData);
   }
@@ -60,7 +65,7 @@ export async function studentSignIn(formData) {
 export async function studentRegister(formData) {
   const supabase = await createSupabaseAuthClient();
   if (!supabase) redirect("/register?error=Student+registration+is+not+configured");
-  const email = String(formData.get("email") || "").trim();
+  const email = normalizeEmail(formData.get("email"));
   const password = String(formData.get("password") || "");
   const fullName = String(formData.get("fullName") || "").trim();
   const next = safeNext(formData.get("next"));
@@ -71,7 +76,8 @@ export async function studentRegister(formData) {
   // Profile data is written only after authentication, never from an unconfirmed signup result.
   if (data.session) { await ensureStudentProfile(data.user); redirect(next); }
   (await cookies()).set("avc_signup_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
-  redirect(`/verify-email?next=${encodeURIComponent(next)}&message=Check+your+email+for+your+verification+code.`);
+  await markCodeSent();
+  redirect(`/verify-email?next=${encodeURIComponent(next)}&message=${encodeURIComponent("Check your email for your verification code. It usually arrives within a minute — if not, check Spam and Promotions.")}`);
 }
 
 export async function studentSignOut() {
@@ -81,7 +87,7 @@ export async function studentSignOut() {
 
 export async function requestPasswordReset(formData) {
   const supabase = await createSupabaseAuthClient();
-  const email = String(formData.get("email") || "").trim();
+  const email = normalizeEmail(formData.get("email"));
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aivideocreator.cv";
   const next = safeNext(formData.get("next"));
   const recoveryPath = "/reset-password/update?next=" + encodeURIComponent(next);
@@ -89,16 +95,23 @@ export async function requestPasswordReset(formData) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(recoveryPath)}` });
   if (error) {
     console.error("Auth password reset email failed", { code: error.code, status: error.status });
-    redirect("/reset-password?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent(error.status === 429 ? "Too many requests. Please wait before requesting another reset email." : "The reset email request could not be completed. Please try again later."));
+    if (error.status === 429) {
+      // a code already went out for this address; send them to enter it rather than ask again
+      (await cookies()).set("avc_recovery_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
+      await markCodeSent();
+      redirect("/reset-password/code?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent("A reset code was sent moments ago. Check your inbox and Spam, and enter the newest code below."));
+    }
+    redirect("/reset-password?next=" + encodeURIComponent(next) + "&error=" + encodeURIComponent("The reset email request could not be completed. Please try again later."));
   }
   (await cookies()).set("avc_recovery_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});
-  redirect("/reset-password/code?next=" + encodeURIComponent(next) + "&message=If+that+account+exists%2C+we+have+sent+a+reset+email.");
+  await markCodeSent();
+  redirect("/reset-password/code?next=" + encodeURIComponent(next) + "&message=" + encodeURIComponent("If that account exists, a reset code is on its way. Use only the code in the newest email. Not there after a minute? Check Spam and Promotions."));
 
 }
 
 export async function verifyPasswordRecoveryCode(formData) {
   const next = safeNext(formData.get("next"));
-  const email = String(formData.get("email") || "").trim();
+  const email = normalizeEmail(formData.get("email"));
   const token = String(formData.get("token") || "").replace(/\s/g, "");
   const fail = message => redirect("/reset-password/code?next="+encodeURIComponent(next)+"&error="+encodeURIComponent(message));
   (await cookies()).set("avc_recovery_email", email, {httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:3600});

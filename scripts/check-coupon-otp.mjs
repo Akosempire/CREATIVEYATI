@@ -28,12 +28,12 @@ const actions=fs.readFileSync('app/student-actions.js','utf8');
 const verify=actions.slice(actions.indexOf('export async function verifyStudentEmail'),actions.indexOf('export async function studentSignIn')).replace('export ','');
 for(const code of [null,'otp_expired']){
  let submitted,profiles=0;
- const fn=new Function('createSupabaseAuthClient','safeNext','redirect','cookies','ensureStudentProfile','console',verify+';return verifyStudentEmail;')(
+ const fn=new Function('createSupabaseAuthClient','safeNext','redirect','cookies','ensureStudentProfile','normalizeEmail','console',verify+';return verifyStudentEmail;')(
  async()=>({auth:{verifyOtp:async args=>{submitted=args;return code?{error:{code}}:{data:{user:{id:'u'}}}}}}),
- ()=>'/checkout/course',url=>{throw new Error(url)},async()=>({set(){},delete(){}}),async()=>{profiles++},{error(){}});
- const form=new FormData();form.set('email','test@example.com');form.set('token','123456');
+ ()=>'/checkout/course',url=>{throw new Error(url)},async()=>({set(){},delete(){}}),async()=>{profiles++},value=>String(value||'').trim().toLowerCase(),{error(){}});
+ const form=new FormData();form.set('email',' Test@Example.com ');form.set('token','123456');
  await assert.rejects(fn(form),error=>error.message.startsWith(code?'/verify-email?':'/checkout/course'));
- assert.equal(submitted.type,'email');assert.equal(profiles,code?0:1);
+ assert.equal(submitted.type,'email');assert.equal(submitted.email,'test@example.com');assert.equal(profiles,code?0:1);
 }
 console.log('PASS coupon states, amount calculations, timezone and signup OTP success/expiry');
 

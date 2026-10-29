@@ -6,6 +6,7 @@ Application release: sign-up leads to a prefilled email/code form. Password sign
 2. Keep Confirm email enabled. Under Email provider settings set Email OTP expiration to 3600 seconds (one hour); keep resend throttling enabled.
 3. Run supabase/production-admin-password-access.sql to make database admin policies match password-only app access.
 4. For administrators with an existing authenticator, remove their enrolled factor in Supabase Authentication > Users using the supported factor removal controls. Existing factors otherwise still require AAL2 for password changes at Supabase.
+5. OTP sender is SendByte (sendbyte.africa). In Supabase Authentication > SMTP Settings enable custom SMTP with host smtp.sendbyte.africa, port 587 (STARTTLS; use 2525 if 587 is blocked), username apikey, password a SendByte live key (sk_live_...). Sender email must be on a domain verified in SendByte; an sk_test_ key only simulates delivery, so codes never arrive. Set Supabase's email rate limit to a production value after enabling custom SMTP.
 No live Auth configuration or database change is implied by a Vercel deployment. Previously issued links/codes cannot be restored. Request a new code after updating the template.
 
 ## Coupon fixes

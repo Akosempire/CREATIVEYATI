@@ -51,3 +51,17 @@ npm run build     # compiles (Turbopack) — catches wiring mistakes
 npx eslint Components lib
 npm run dev       # feel-check scroll/entry/focus by hand; these are not unit-testable
 ```
+
+## Homepage grid (replaces the hero on `/`)
+
+The home page is now an infinite, curved WebGL grid of projects. The brief lives in `docs/homepage-grid-prompt.md`.
+
+| File | Owns |
+| --- | --- |
+| `lib/grid/config.js` | Grid tunables (lattice, curvature, motion, focus, intro, atlas). Data only. |
+| `lib/grid/engine.js` | three.js renderer, curved projection shaders, wrap, input, inertia, fly-to, hit-testing. No React. |
+| `Components/grid/GridHome.jsx` | Overlay UI: coords, hover title, cursor, ticker, a11y list, mobile menu. Boots the engine. |
+| `Components/grid/GridNav.jsx`, `ProjectSheet.jsx`, `AboutSheet.jsx` | Nav pill, project sheet, about/contact sheet (posts to `/api/enquiries`). Motion (`motion/react`) drives all DOM animation. |
+| `app/page.js` | Fetches Supabase work and maps it to `{ id, name, brandColor, services[], images[6], caseStudyUrl }`. |
+
+Same contract as the carousel: the engine talks to React only through callbacks (`onHover`, `onSelect`, `onFrame`, `onColors`, `onIntroDone`, `onRequestClose`) and its handle (`flyToProject`, `release`, `setDimmed`, `resize`, `destroy`). Keep `bendJS` in step with the GLSL `bend()`, because hit-testing inverts it.

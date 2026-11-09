@@ -152,17 +152,18 @@ body:has(.sl-nav) :is(.button, .svc-button, .avc-button, .contact-submit, .check
   border: 0; border-radius: 999px; background: var(--sl-accent); color: var(--sl-accent-ink); font-family: Inter, sans-serif; font-weight: 600; letter-spacing: -.01em; box-shadow: none;
   transition: background-color .3s var(--sl-ease), color .3s var(--sl-ease), transform .3s var(--sl-ease);
 }
-body:has(.sl-nav) :is(.button, .svc-button, .avc-button, .contact-submit, .checkout-pay, .academy-cta):hover:not(:disabled) { background: var(--sl-ink); color: var(--sl-paper); transform: none; box-shadow: none; }
+body:has(.sl-nav) :is(.button, .svc-button, .avc-button, .contact-submit, .checkout-pay, .academy-cta):hover:not(:disabled) { background: #1f6249; color: #fff; transform: none; box-shadow: none; }
 body:has(.sl-nav) :is(.button-dark, .booking-action) { background: var(--sl-ink); color: var(--sl-paper); }
 body:has(.sl-nav) :is(.button-dark, .booking-action):hover:not(:disabled) { background: var(--sl-accent); color: var(--sl-accent-ink); }
 body:has(.sl-nav) .button.button-secondary { background: transparent; color: var(--sl-ink); box-shadow: inset 0 0 0 1px var(--sl-line-strong); }
-body:has(.sl-nav) .button.button-secondary:hover:not(:disabled) { background: var(--sl-ink); color: var(--sl-paper); box-shadow: none; }
+body:has(.sl-nav) .button.button-secondary:hover:not(:disabled) { background: var(--sl-accent); color: #fff; box-shadow: none; }
 body:has(.sl-nav) :is(.inline-link, .svc-text-link, .avc-text-link, .fm-auth-alt a) { color: var(--sl-ink); text-decoration: underline; text-decoration-color: var(--sl-accent); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .sl-cta { transition: background-color .3s var(--sl-ease), color .3s var(--sl-ease); }
-.sl-menu-cta:hover { background: var(--sl-ink); color: var(--sl-paper); }
+.sl-nav .sl-cta:hover { background: #1f6249; }
+.sl-menu-cta:hover { background: #1f6249; color: #fff; }
 /* on the green footer the cta flips to white */
 body:has(.sl-nav) .sl-footer .sl-cta { background: #fff; color: var(--sl-accent); }
-body:has(.sl-nav) .sl-footer .sl-cta:hover { background: var(--sl-ink); color: #fff; }
+body:has(.sl-nav) .sl-footer .sl-cta:hover { background: #e9f1ec; color: var(--sl-accent); }
 
 /* tags + filter chips: hairline pills */
 body:has(.sl-nav) :is(.svc-card li, .avc-skill-tags span, .avc-course-level, .catalog-categories button) {
@@ -257,7 +258,7 @@ body:has(.sl-nav) .pwa-install { background: transparent; color: var(--sl-muted)
 .sc-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .sc-play { position: absolute; z-index: 3; top: 16px; left: 16px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: #174c38; color: #fff; font: 600 13px Inter, sans-serif; cursor: pointer; transition: background-color .25s, transform .25s; }
 .sc-play span { font-size: 10px; }
-.sc-play:hover { background: #0d0d0c; }
+.sc-play:hover { background: #1f6249; }
 .sc-credit { position: absolute; z-index: 3; top: 18px; right: 16px; max-width: 55%; overflow: hidden; padding: 6px 12px; border-radius: 999px; background: rgba(247, 245, 241, .9); color: #0d0d0c; font: 500 11px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
 .sc-credit:hover { background: #fff; }
 .sc-lightbox { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px 16px; background: rgba(13, 13, 12, .88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -276,3 +277,13 @@ body:has(.sl-nav) .pwa-install { background: transparent; color: var(--sl-muted)
 .avc-scene-main > .sc-credit { top: auto; bottom: 64px; right: 18px; }
 /* page link colours must not reach the nav button */
 body:has(.sl-nav) .sl-nav .sl-cta, body:has(.sl-nav) .sl-menu .sl-cta { color: #fff; }
+
+/* ---------- green buttons always carry white text ---------- */
+/* older rules still pair the accent with #101400 (made for lime) */
+body:has(.sl-nav) { --site-accent: #174c38; --sl-accent-hover: #1f6249; }
+body:has(.sl-nav) .project-media-play,
+body:has(.sl-nav) .preview-devices button[aria-pressed="true"],
+body:has(.sl-nav) .checkout-stepper li[data-state="done"] .checkout-stepper-mark { background: var(--sl-accent); border-color: var(--sl-accent); color: #fff; }
+body:has(.sl-nav) .project-media-play svg { color: #fff; fill: currentColor; }
+/* play buttons: lighter green on hover, never black */
+body:has(.sl-nav) .project-media-play:is(:hover, :focus-visible), .sc-play:is(:hover, :focus-visible) { background: var(--sl-accent-hover, #1f6249); color: #fff; filter: none; }

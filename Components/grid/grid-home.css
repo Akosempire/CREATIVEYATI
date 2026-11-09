@@ -61,6 +61,7 @@ html:has(.gh-root), body:has(.gh-root) { overflow: hidden; overscroll-behavior: 
 .gh-cta { justify-self: end; display: inline-flex; align-items: center; gap: 10px; height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: 14px; font-weight: 600; letter-spacing: -.01em; text-decoration: none; cursor: pointer; }
 .gh-cta:disabled { opacity: .6; cursor: progress; }
 .gh-root .gh-cta { color: var(--accent-ink); }
+.gh-root .gh-cta:hover:not(:disabled) { background: #1f6249; }
 .gh-root .gh-cta-dark { color: var(--paper); }
 .gh-cta-dark { background: var(--ink); color: var(--paper); }
 .gh-cta-arrow { font-size: 15px; }

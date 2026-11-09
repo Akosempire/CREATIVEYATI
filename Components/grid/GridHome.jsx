@@ -10,7 +10,7 @@ import "./grid-home.css";
 
 // ink or paper over a brand colour, whichever reads
 function readableOn(hex) {
-  const v = parseInt(String(hex || "#a3c900").slice(1), 16);
+  const v = parseInt(String(hex || "#174c38").slice(1), 16);
   const [r, g, b] = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map((c) => {
     const s = c / 255;
     return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
@@ -154,7 +154,7 @@ export default function GridHome({ projects, ticker, about, socialLinks, accent,
   const showCursor = hover !== null && !sheet && active === null;
 
   return <MotionConfig reducedMotion="user">
-    <main className="gh-root" style={{ "--gh-accent": accent }}>
+    <main className="gh-root">
       <h1 className="gh-sr">Idayat Ibrahim: AI video creator portfolio</h1>
 
       <canvas ref={canvasRef} className={`gh-canvas${ready ? " is-ready" : ""}`} aria-hidden="true" />
@@ -274,8 +274,8 @@ const menuItem = {
 
 function MobileMenu({ onWork, onAbout, onContact, onClose }) {
   const items = [
-    ["Work", onWork], ["About", onAbout], ["Contact", onContact],
-    ["Academy", "/academy"], ["Courses", "/courses"], ["Sign in", "/login"],
+    ["Work", onWork], ["Services", "/services"], ["Academy", "/academy"], ["Courses", "/courses"],
+    ["About", onAbout], ["Contact", onContact], ["Sign in", "/login"], ["Verify a certificate", "/verify"],
   ];
   return <motion.div
     className="gh-menu"

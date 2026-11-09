@@ -4,13 +4,14 @@ import { useRef, useState } from "react";
 import { notify } from "@/Components/ToastHost";
 import { streamVideoId } from "@/lib/stream-reference";
 import LessonWatermark from "@/Components/LessonWatermark";
+import { snapRatio, useVideoAspect } from "@/lib/video-aspect";
 
 export default function CourseVideoPlayer({ lesson, admin = false, watermark = "" }) {
   const [state, setState] = useState("loading");
   const lastSaved = useRef(0);
   const [attempt,setAttempt]=useState(0);
-  const orientation = lesson.orientation === "portrait" ? "portrait" : "landscape";
-  const ratio = Number(lesson.aspectRatio) || (orientation === "portrait" ? 9 / 16 : 16 / 9);
+  const stored = Number(lesson.aspectRatio) || (lesson.orientation === "portrait" ? 9 / 16 : 16 / 9);
+  const { ratio, orientation, setMeasured } = useVideoAspect(lesson, stored);
   const uploaded = lesson.sourceType === "upload" || lesson.videoProvider === "upload";
   const src = uploaded && admin && lesson.storageKey ? `/api/admin/course-draft-media?courseId=${lesson.courseId}&kind=video&key=${encodeURIComponent(lesson.storageKey)}` : uploaded ? `/api/learn/media/video/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.embedUrl || "";
   const poster = admin && lesson.posterStorageKey ? `/api/admin/course-draft-media?courseId=${lesson.courseId}&kind=poster&key=${encodeURIComponent(lesson.posterStorageKey)}` : lesson.posterStorageKey ? `/api/learn/media/poster/${lesson.id}${admin ? "?admin=1" : ""}` : lesson.posterUrl || "";
@@ -32,7 +33,7 @@ export default function CourseVideoPlayer({ lesson, admin = false, watermark = "
   return <div className={`course-video-player is-${orientation}`} style={{ "--course-video-ratio": ratio }}>
     {state === "loading" && <div className="course-video-state">Loading video…</div>}
     {state === "error" && <div className="course-video-state is-error" role="alert">This video could not be played. Check its source and access settings. <button type="button" onClick={()=>{setState("loading");setAttempt(n=>n+1);}}>Retry playback</button></div>}
-    {uploaded ? <Video key={attempt} src={`${src}${src.includes("?") ? "&" : "?"}attempt=${attempt}`} poster={poster || undefined} controls controlsList={lesson.allowDownload ? undefined : "nodownload"} disablePictureInPicture preload="metadata" playsInline onLoadedMetadata={(event) => { setState("ready"); if (!admin && lesson.lastPosition > 0 && lesson.lastPosition < event.currentTarget.duration - 5) event.currentTarget.currentTime = lesson.lastPosition; }} onTimeUpdate={(event) => { if (admin || !lesson.courseId || event.currentTarget.currentTime - lastSaved.current < 10) return; lastSaved.current = event.currentTarget.currentTime; fetch("/api/learn/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId: lesson.courseId, lessonId: lesson.id, position: Math.floor(event.currentTarget.currentTime) }) }).catch(() => {}); }} onError={() => setState("error")}>
+    {uploaded ? <Video key={attempt} src={`${src}${src.includes("?") ? "&" : "?"}attempt=${attempt}`} poster={poster || undefined} controls controlsList={lesson.allowDownload ? undefined : "nodownload"} disablePictureInPicture preload="metadata" playsInline onLoadedMetadata={(event) => { setState("ready"); const v = event.currentTarget; if (v.videoWidth && v.videoHeight) setMeasured(snapRatio(v.videoWidth / v.videoHeight)); if (!admin && lesson.lastPosition > 0 && lesson.lastPosition < event.currentTarget.duration - 5) event.currentTarget.currentTime = lesson.lastPosition; }} onTimeUpdate={(event) => { if (admin || !lesson.courseId || event.currentTarget.currentTime - lastSaved.current < 10) return; lastSaved.current = event.currentTarget.currentTime; fetch("/api/learn/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId: lesson.courseId, lessonId: lesson.id, position: Math.floor(event.currentTarget.currentTime) }) }).catch(() => {}); }} onError={() => setState("error")}>
       {lesson.captionsUrl && <track kind="captions" src={lesson.captionsUrl} srcLang="en" label="Captions" default />}
     </Video> : <iframe src={src} title={lesson.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" onLoad={() => setState("ready")} />}
     {uploaded && (admin || lesson.allowDownload) && <button type="button" className="button" onClick={downloadVideo}>Download video</button>}

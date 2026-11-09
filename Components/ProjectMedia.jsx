@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminIcon } from "./Icons";
 import ExternalVideoPlayer from "./ExternalVideoPlayer";
-import { projectAspectRatio, projectCovers, projectOrientation, variantSrcSet } from "@/lib/project-media";
+import { projectAspectRatio, projectCovers, variantSrcSet } from "@/lib/project-media";
+import { useVideoAspect } from "@/lib/video-aspect";
 
 const contextSizes = {
   carousel: "(max-width: 720px) 92vw, 60vw",
@@ -22,8 +23,8 @@ export default function ProjectMedia({
   onClose,
   className = "",
 }) {
-  const orientation = projectOrientation(project);
-  const videoAspectRatio = projectAspectRatio(project);
+  // measured from the video itself; the admin orientation is only the starting guess
+  const { ratio: videoAspectRatio, orientation } = useVideoAspect(project, projectAspectRatio(project));
   const covers = useMemo(() => projectCovers(project), [project]);
   const [playing, setPlaying] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -54,11 +55,11 @@ export default function ProjectMedia({
   return <div
     className={`project-media project-media--${context} ${className}`.trim()}
     data-video-orientation={orientation}
-    data-ratio={playing && orientation === "portrait" ? "9:16" : "16:9"}
+    data-ratio={playing ? (orientation === "portrait" ? "9:16" : orientation === "square" ? "1:1" : "16:9") : "16:9"}
     data-playing={playing ? "true" : "false"}
     style={{ "--media-aspect": playing ? videoAspectRatio : 16 / 9, "--cover-fit": "cover", "--focal-x": `${covers.focalX}%`, "--focal-y": `${covers.focalY}%` }}
   >
-    {playing ? <ExternalVideoPlayer video={project} onClose={onClose} /> : <>
+    {playing ? <ExternalVideoPlayer video={project} orientation={orientation} onClose={onClose} /> : <>
       <picture>
         {preferMobile && !overrideSource && (covers.mobileUrl || mobileSrcSet) && <source srcSet={mobileSrcSet || covers.mobileUrl} sizes={contextSizes[context]} />}
         <img

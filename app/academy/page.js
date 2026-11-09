@@ -8,6 +8,8 @@ import { getSiteContent } from "@/lib/data/site";
 import { getPublicSocialLinks } from "@/lib/data/social";
 import { getStudentUser } from "@/lib/supabase/server";
 import "./academy.css";
+import { assignShowcase, clientItem, getShowcase } from "@/lib/data/showcase";
+import ShowcaseMedia from "@/Components/site/ShowcaseMedia";
 
 const origin = "https://aivideocreator.cv";
 export const metadata = {
@@ -33,7 +35,9 @@ const faqs = [
 function Arrow() { return <span aria-hidden="true">↗</span>; }
 
 export default async function AcademyPage() {
-  const [site, socialLinks, courses, user] = await Promise.all([getSiteContent(), getPublicSocialLinks(), getPublishedCourses(), getStudentUser()]);
+  const [site, socialLinks, courses, user, showcase] = await Promise.all([getSiteContent(), getPublicSocialLinks(), getPublishedCourses(), getStudentUser(), getShowcase()]);
+  // the hero stage shows real published films instead of stock stills
+  const stage = assignShowcase(showcase, ["hero", "products", "social"]);
   const structuredData = { "@context": "https://schema.org", "@graph": [
     { "@type": "Person", "@id": `${origin}/#idayat-ibrahim`, name: "Idayat Ibrahim", url: `${origin}/about`, jobTitle: "AI Video Creator, AI Video Editor and AI Tutor", description: "AI Video Creator, Video Editor, Visual Storyteller and AI Tutor based in Nigeria, working with brands and creators worldwide.", homeLocation: { "@type": "Country", name: "Nigeria" }, knowsAbout: skills },
     { "@type": "EducationalOrganization", "@id": `${origin}/academy#organization`, name: "AI VIDEO CREATOR Academy", alternateName: "Idayat Ibrahim Academy", url: `${origin}/academy`, founder: { "@id": `${origin}/#idayat-ibrahim` } },
@@ -49,9 +53,9 @@ export default async function AcademyPage() {
         <p className="avc-intro">Learn to turn your imagination into AI-powered films, product ads and stories worth watching. Create with purpose. Learn with Idayat Ibrahim.</p>
         <div className="avc-actions"><Link className="avc-button" href="#courses">Explore the courses <Arrow /></Link><Link className="avc-text-link" href="#how-it-works">See how you’ll learn <span aria-hidden="true">↓</span></Link></div>
         <div className="avc-hero-stage">
-          <div className="avc-scene avc-scene-left"><Image src="/img4.png" alt="A close-up product composition of a metallic control dial" fill sizes="(max-width: 700px) 30vw, 250px" /><span>THE DETAIL</span></div>
-          <div className="avc-scene avc-scene-main"><Image src="/img8.png" alt="A cinematic fashion composition against a deep red background" fill priority sizes="(max-width: 700px) 75vw, 650px" /><div className="avc-frame-label"><span><i /> YOUR VISION, IN MOTION</span><span>01 / 03</span></div><span className="avc-scene-caption">From a spark.<br />To a story.</span></div>
-          <div className="avc-scene avc-scene-right"><Image src="/img1.png" alt="An editorial portrait exploring light, texture and styling" fill sizes="(max-width: 700px) 30vw, 240px" /><span>THE PERSPECTIVE</span></div>
+          <div className="avc-scene avc-scene-left"><ShowcaseMedia item={clientItem(stage.products)} fallbackSrc="/img4.png" fallbackAlt="A close-up product composition of a metallic control dial" showPlay={false} showCredit={false} /><span>THE DETAIL</span></div>
+          <div className="avc-scene avc-scene-main"><ShowcaseMedia item={clientItem(stage.hero)} fallbackSrc="/img8.png" fallbackAlt="A cinematic fashion composition against a deep red background" priority showCredit={false} /><div className="avc-frame-label"><span><i /> YOUR VISION, IN MOTION</span><span>01 / 03</span></div><span className="avc-scene-caption">From a spark.<br />To a story.</span></div>
+          <div className="avc-scene avc-scene-right"><ShowcaseMedia item={clientItem(stage.social)} fallbackSrc="/img1.png" fallbackAlt="An editorial portrait exploring light, texture and styling" showPlay={false} showCredit={false} /><span>THE PERSPECTIVE</span></div>
           <div className="avc-hero-note"><span className="avc-note-star" aria-hidden="true">✳</span><strong>Human imagination.<br />AI possibilities.</strong><p>The tools are new.<br />The story is yours.</p></div>
           <p className="avc-stage-foot">A space to explore what you can create.</p>
         </div>

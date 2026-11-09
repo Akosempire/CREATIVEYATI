@@ -50,7 +50,7 @@ export default function PublicHeader({ signedIn = false }) {
   return <MotionConfig reducedMotion="user">
     <header className="sl-nav">
       <Link href="/" className="sl-wordmark" aria-label="AI Video Creator home" onClick={() => setOpen(false)}>
-        <b>AI Video</b><span>Creator</span>
+        <i aria-hidden="true">AI</i><b>AI Video</b><span>Creator</span>
       </Link>
 
       <nav className="sl-pill" aria-label="Primary">

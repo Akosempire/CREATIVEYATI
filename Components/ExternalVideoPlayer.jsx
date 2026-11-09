@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getVideoSource } from "@/lib/video-source";
 import { SoundIcon } from "./Icons";
 
-export default function ExternalVideoPlayer({ video, onClose }) {
+export default function ExternalVideoPlayer({ video, orientation: shape, onClose }) {
+  const orientation = shape || (video?.orientation === "portrait" ? "portrait" : "landscape");
   const frame = useRef(null);
   const [failed, setFailed] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -36,7 +37,7 @@ export default function ExternalVideoPlayer({ video, onClose }) {
   }
 
   if (!source?.embedUrl) return <div className="player-empty">A playable video link has not been attached to this project.</div>;
-  return <section className={`player ${video.orientation === "portrait" ? "player-portrait" : ""}`} data-orientation={video.orientation === "portrait" ? "portrait" : "landscape"} data-ratio={video.orientation === "portrait" ? "9:16" : "16:9"} aria-label={`${video.title} video`}>
+  return <section className={`player ${orientation === "portrait" ? "player-portrait" : ""}`} data-orientation={orientation} data-ratio={orientation === "portrait" ? "9:16" : orientation === "square" ? "1:1" : "16:9"} aria-label={`${video.title} video`}>
     <iframe ref={frame} src={source.embedUrl} title={video.title} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen onError={() => setFailed(true)} />
     {failed && <p className="player-error">This video is unavailable, private, or cannot be embedded.</p>}
     <div className="player-actions">

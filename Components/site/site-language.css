@@ -3,7 +3,7 @@
    Loaded by PublicHeader and scoped to pages that render it (body:has(.sl-nav)),
    so admin and the student area are untouched.
 
-   paper + graph paper · ink · one lime accent · Fredoka display / Inter text ·
+   paper + graph paper · brand green · ink · Fredoka display / Inter text ·
    uppercase tracked labels · pill controls · square imagery · hairlines
    ========================================================================== */
 
@@ -17,8 +17,10 @@ body:has(.sl-nav) {
   --sl-line-strong: rgba(13, 13, 12, .28);
   --sl-on-dark: rgba(247, 245, 241, .7);
   --sl-line-dark: rgba(247, 245, 241, .16);
-  --sl-accent: var(--site-accent, #a3c900);
-  --sl-accent-ink: #101400;
+  /* brand: green, black, white (theme colour in layout.js) */
+  --sl-accent: #174c38;
+  --sl-accent-ink: #ffffff;
+  --sl-brand-deep: #0f3325;
   --sl-placeholder: #e7e3db;
   --sl-gutter: clamp(16px, 3vw, 40px);
   --sl-ease: cubic-bezier(.22, 1, .36, 1);
@@ -73,12 +75,13 @@ body:has(.sl-nav) :is(a, button, input, textarea, select, summary):focus-visible
   color: var(--sl-ink);
 }
 .sl-nav > * { pointer-events: auto; }
-.sl-wordmark { justify-self: start; display: inline-flex; align-items: baseline; gap: .2em; color: var(--sl-ink); text-decoration: none; font-family: Fredoka, sans-serif; font-size: 25px; line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
+.sl-wordmark { justify-self: start; display: inline-flex; align-items: center; gap: .2em; color: var(--sl-ink); text-decoration: none; font-family: Fredoka, sans-serif; font-size: 25px; line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
+.sl-wordmark i { display: grid; place-items: center; width: 34px; height: 34px; margin-right: .3em; border-radius: 10px; background: var(--sl-accent); color: #fff; font-style: normal; font-size: 15px; font-weight: 600; letter-spacing: -.02em; }
 .sl-wordmark b { font-weight: 700; }
 .sl-wordmark span { font-weight: 400; }
 .sl-pill { display: flex; gap: 2px; padding: 4px; border: 1px solid var(--sl-line); border-radius: 999px; background: rgba(247, 245, 241, .7); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
 .sl-pill a { position: relative; padding: 9px 16px; border-radius: 999px; color: var(--sl-ink); font-size: 13.5px; font-weight: 500; text-decoration: none; white-space: nowrap; }
-.sl-pill-bg { position: absolute; inset: 0; z-index: 0; border-radius: 999px; background: var(--sl-ink); }
+.sl-pill-bg { position: absolute; inset: 0; z-index: 0; border-radius: 999px; background: var(--sl-accent); }
 .sl-pill-label { position: relative; z-index: 1; transition: color .25s var(--sl-ease); }
 .sl-pill a.is-active .sl-pill-label { color: var(--sl-paper); }
 .sl-pill a:not(.is-active):hover .sl-pill-label { color: var(--sl-muted); }
@@ -156,13 +159,16 @@ body:has(.sl-nav) .button.button-secondary { background: transparent; color: var
 body:has(.sl-nav) .button.button-secondary:hover:not(:disabled) { background: var(--sl-ink); color: var(--sl-paper); box-shadow: none; }
 body:has(.sl-nav) :is(.inline-link, .svc-text-link, .avc-text-link, .fm-auth-alt a) { color: var(--sl-ink); text-decoration: underline; text-decoration-color: var(--sl-accent); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .sl-cta { transition: background-color .3s var(--sl-ease), color .3s var(--sl-ease); }
-.sl-footer .sl-cta:hover, .sl-menu-cta:hover { background: var(--sl-ink); color: var(--sl-paper); }
+.sl-menu-cta:hover { background: var(--sl-ink); color: var(--sl-paper); }
+/* on the green footer the cta flips to white */
+body:has(.sl-nav) .sl-footer .sl-cta { background: #fff; color: var(--sl-accent); }
+body:has(.sl-nav) .sl-footer .sl-cta:hover { background: var(--sl-ink); color: #fff; }
 
 /* tags + filter chips: hairline pills */
 body:has(.sl-nav) :is(.svc-card li, .avc-skill-tags span, .avc-course-level, .catalog-categories button) {
   border: 1px solid var(--sl-line-strong); border-radius: 999px; background: transparent; color: var(--sl-ink); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
 }
-body:has(.sl-nav) .catalog-categories button[aria-pressed=true] { border-color: var(--sl-ink); background: var(--sl-ink); color: var(--sl-paper); }
+body:has(.sl-nav) .catalog-categories button[aria-pressed=true] { border-color: var(--sl-accent); background: var(--sl-accent); color: #fff; }
 
 /* inputs: a single hairline, like the contact sheet on the grid */
 body:has(.sl-nav) :is(.public-page, .fm-auth) :is(input:not([type]), input[type=text], input[type=email], input[type=password], input[type=tel], input[type=number], input[type=url], textarea, select) {
@@ -192,11 +198,11 @@ body:has(.sl-nav) :is(.svc-card-copy > a, .svc-faq summary span) { color: var(--
 body:has(.sl-nav) .empty-state { border: 1px dashed var(--sl-line-strong); background: transparent; color: var(--sl-muted); }
 body:has(.sl-nav) .svc-training-mark, body:has(.sl-nav) .avc-final-mark { color: var(--sl-accent); }
 body:has(.sl-nav) :is(.avc-step-number, .avc-course-empty > span, .spotlight-label, .checkout-choice-check) { color: var(--sl-label); }
-body:has(.sl-nav) .checkout-choice-check { background: var(--sl-ink); color: var(--sl-paper); }
+body:has(.sl-nav) .checkout-choice-check { background: var(--sl-accent); color: #fff; }
 
 /* ---------- dark bands: ink, never green ---------- */
 body:has(.sl-nav) :is(.svc-process, .avc-scene, .avc-hero-note, .svc-hero-art, .fm-auth-aside, .about-portrait) {
-  background-color: var(--sl-ink); color: var(--sl-paper);
+  background-color: var(--sl-accent); color: var(--sl-paper);
 }
 body:has(.sl-nav) :is(.svc-process, .fm-auth-aside) {
   background-image:
@@ -214,7 +220,7 @@ body:has(.sl-nav) .fm-auth-card { border: 1px solid var(--sl-line); background: 
 body:has(.sl-nav) :is(.fm-auth-brand, .fm-auth-logo) { font-family: Fredoka, sans-serif; letter-spacing: -.03em; }
 
 /* ---------- footer ---------- */
-body:has(.sl-nav) .sl-footer { display: block; margin-top: 0; padding: clamp(56px, 8vw, 104px) var(--sl-gutter) 28px; border-top: 1px solid var(--sl-line); background: var(--sl-ink); color: var(--sl-paper); font-size: 14px; min-height: 0; }
+body:has(.sl-nav) .sl-footer { display: block; margin-top: 0; padding: clamp(56px, 8vw, 104px) var(--sl-gutter) 28px; border-top: 1px solid var(--sl-line); background: var(--sl-accent); color: var(--sl-paper); font-size: 14px; min-height: 0; }
 .sl-footer-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 28px; padding-bottom: clamp(40px, 6vw, 72px); border-bottom: 1px solid var(--sl-line-dark); }
 .sl-footer-big { max-width: 14ch; margin: 0; font-family: Fredoka, sans-serif; font-size: clamp(2.6rem, 6vw, 5.6rem); font-weight: 700; line-height: .92; letter-spacing: -.045em; text-transform: uppercase; }
 .sl-footer-big span { display: block; font-weight: 400; color: rgba(247, 245, 241, .55); }
@@ -222,7 +228,7 @@ body:has(.sl-nav) .sl-footer { display: block; margin-top: 0; padding: clamp(56p
 .sl-footer-cols > * { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 body:has(.sl-nav) .sl-footer-cols .sl-label { margin: 0 0 8px; color: rgba(247, 245, 241, .45); }
 body:has(.sl-nav) .sl-footer a { color: var(--sl-paper); text-decoration: none; }
-.sl-footer-cols a:hover { text-decoration: underline; text-decoration-color: var(--sl-accent); text-underline-offset: 4px; }
+.sl-footer-cols a:hover { text-decoration: underline; text-decoration-color: #fff; text-underline-offset: 4px; }
 .sl-footer .social-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 4px; }
 .sl-footer .social-links svg { width: 16px; height: 16px; }
 .sl-footer-base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 22px; border-top: 1px solid var(--sl-line-dark); color: rgba(247, 245, 241, .45); font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
@@ -235,9 +241,9 @@ body:has(.sl-nav) .sl-footer a { color: var(--sl-paper); text-decoration: none; 
 /* ---------- fixes found in review ---------- */
 html:has(.sl-nav) { background: #f7f5f1; }
 /* the academy marquee becomes the homepage ticker: an ink band */
-body:has(.sl-nav) .avc-marquee { background: var(--sl-ink); color: var(--sl-paper); border-color: transparent; }
+body:has(.sl-nav) .avc-marquee { background: var(--sl-accent); color: var(--sl-paper); border-color: transparent; }
 body:has(.sl-nav) .avc-marquee-group { color: var(--sl-paper); font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
-body:has(.sl-nav) .avc-marquee-control { border-color: var(--sl-line-dark); background: var(--sl-ink); color: var(--sl-paper); box-shadow: 0 0 16px 10px var(--sl-ink); }
+body:has(.sl-nav) .avc-marquee-control { border-color: var(--sl-line-dark); background: var(--sl-accent); color: var(--sl-paper); box-shadow: 0 0 16px 10px var(--sl-accent); }
 body:has(.sl-nav) .pwa-install { color: var(--sl-ink); }
 /* footer keeps its own voice inside pages that restyle p */
 body:has(.sl-nav) .sl-footer .sl-footer-big { margin: 0; color: var(--sl-paper); font-size: clamp(2.6rem, 6vw, 5.6rem); line-height: .92; letter-spacing: -.045em; }
@@ -246,3 +252,27 @@ body:has(.sl-nav) .sl-footer .sl-footer-big span { color: rgba(247, 245, 241, .5
 body:has(.contact-page) .sl-footer-top { display: none; }
 body:has(.contact-page) .sl-footer-cols { padding-top: 0; }
 body:has(.sl-nav) .pwa-install { background: transparent; color: var(--sl-muted); }
+
+/* ---------- showcase: real project stills + play-in-lightbox ---------- */
+.sc-still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.sc-play { position: absolute; z-index: 3; top: 16px; left: 16px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: #174c38; color: #fff; font: 600 13px Inter, sans-serif; cursor: pointer; transition: background-color .25s, transform .25s; }
+.sc-play span { font-size: 10px; }
+.sc-play:hover { background: #0d0d0c; }
+.sc-credit { position: absolute; z-index: 3; top: 18px; right: 16px; max-width: 55%; overflow: hidden; padding: 6px 12px; border-radius: 999px; background: rgba(247, 245, 241, .9); color: #0d0d0c; font: 500 11px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+.sc-credit:hover { background: #fff; }
+.sc-lightbox { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px 16px; background: rgba(13, 13, 12, .88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.sc-frame { position: relative; max-width: 92vw; background: #000; }
+.sc-frame > .player { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; margin: 0; }
+.sc-frame > .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.sc-frame .player-actions { top: auto; bottom: -46px; right: 0; }
+.sc-lightbox-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; width: min(92vw, 1000px); margin-top: 40px; color: #f7f5f1; font: 500 13px Inter, sans-serif; }
+.sc-lightbox-bar a { color: #f7f5f1; text-decoration: underline; text-decoration-color: #174c38; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.sc-lightbox-bar button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border: 1px solid rgba(247, 245, 241, .3); border-radius: 999px; background: transparent; color: #f7f5f1; font: inherit; cursor: pointer; }
+.sc-lightbox-bar kbd { padding: 3px 7px; border-radius: 999px; background: rgba(247, 245, 241, .14); font: 500 10px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+/* stills sit under each page's own overlays */
+.svc-hero-art > .sc-still, .svc-card-image > .sc-still, .avc-scene > .sc-still { z-index: 0; }
+.svc-card-image > .sc-play { top: 14px; left: 14px; }
+.avc-scene-main > .sc-play { top: auto; bottom: 18px; left: auto; right: 18px; }
+.avc-scene-main > .sc-credit { top: auto; bottom: 64px; right: 18px; }
+/* page link colours must not reach the nav button */
+body:has(.sl-nav) .sl-nav .sl-cta, body:has(.sl-nav) .sl-menu .sl-cta { color: #fff; }

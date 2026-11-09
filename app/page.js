@@ -78,7 +78,7 @@ export default async function Home() {
     ticker={ticker}
     about={about}
     socialLinks={socialLinks.map(({ id, label, url, platform }) => ({ id, label, url, platform }))}
-    accent={site.accentColor || "#a3c900"}
+    accent="#174c38"
     notice={!projects.length ? (error || "No published work yet.") : usingDemo ? "Demo projects · Supabase not connected" : ""}
   />;
 }

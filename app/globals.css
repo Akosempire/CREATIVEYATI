@@ -620,6 +620,10 @@ html[data-theme="light"] .carousel-shell { background:#fff; }
 .project-media>.player { position:absolute; inset:0; width:100%; height:100%; max-height:none; aspect-ratio:inherit; }
 .project-media--project-page { max-width:100%; margin:38px 0; }
 .project-media--project-page[data-playing="true"][data-video-orientation="portrait"] { width:min(100%,460px); }
+.project-media--project-page[data-playing="true"][data-video-orientation="square"] { width:min(100%,620px); }
+.focus-project .project-media--focus-player[data-playing="true"][data-video-orientation="square"] { width:min(100%,76vh); justify-self:center; }
+.mobile-player .project-media--focus-player[data-video-orientation="square"] { width:min(92vw,76svh); }
+.course-video-player.is-square { width:min(100%,640px); }
 .project-page .project-media--project-page + .project-description { margin-top:38px; }
 .focus-project .project-media--focus-player[data-playing="true"][data-video-orientation="portrait"] { width:min(100%,calc(76vh * .5625)); justify-self:center; }
 .mobile-player .project-media--focus-player[data-video-orientation="landscape"] { width:min(94vw,1000px); }

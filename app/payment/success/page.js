@@ -68,7 +68,7 @@ export default async function PaymentSuccessPage({ searchParams }) {
       {!confirmed && !failed && <p className="secure-note">We check Bachs directly. Do not pay again — retrying verification cannot create a second charge.</p>}
 
       {failed && <Link className="button" href={`/checkout/${order.course_id}`}>Try this purchase again</Link>}
-      {failed && <p className="secure-note"><Link className="inline-link" href="/contact">Need help with this payment?</Link></p>}
+      {failed && <p className="secure-note"><Link className="inline-link" href="/#contact">Need help with this payment?</Link></p>}
     </section>
   </main>;
 }

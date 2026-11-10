@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Mochiy+Pop+One&family=Fredoka:wght@300..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Kantumruy+Pro:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root { --background:#ffffff; --foreground:#171716; --surface:rgba(255,255,255,.82); --surface-elevated:#ffffff; --muted:#77746e; --muted-foreground:#605e58; --border:rgba(23,23,22,.14); --accent:#171716; --accent-foreground:#fff; --glass-background:rgba(255,255,255,.58); --glass-border:rgba(255,255,255,.82); --overlay:rgba(15,15,14,.64); --focus-ring:#0a78d1; --menu-glass-background:rgba(248,248,245,.82); --menu-readable-scrim:rgba(255,255,252,.2); --menu-glass-border:rgba(255,255,255,.68); --menu-foreground:#111111; --duration-stagger:40ms; --duration-fast:250ms; --duration-slow:400ms; --dropdown-open-dur:250ms; --dropdown-close-dur:150ms; --dropdown-pre-scale:.97; --dropdown-closing-scale:.99; --dropdown-ease:cubic-bezier(.22,1,.36,1); --ease-smooth-out:cubic-bezier(.22,1,.36,1); }

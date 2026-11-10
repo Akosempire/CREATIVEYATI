@@ -10,58 +10,33 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project notes for AI assistants
 
-WebGL portfolio carousel: three.js + GSAP core with a thin React/Next.js wrapper. Human docs: `README.md` (overview) and `HOW-IT-WORKS.md` (architecture walkthrough) — read the latter before changing engine behavior.
+Portfolio + academy for Idayat Ibrahim (AI video creator). Next.js App Router, JS only, Supabase data, Motion (`motion/react`) for UI animation.
 
-## File map
+## Public site (Nov 2026 redesign)
+
+One page does the selling: a fixed intro panel on the left and an image-led stream of work on the right. Services, About and Contact live on it as sections; `/services`, `/about`, `/contact` and `/work` redirect there (`next.config.mjs`).
 
 | File | Owns |
 | --- | --- |
-| `lib/carousel/config.js` | `PROJECTS` image list + all tunables (`CONFIG`, `INTERACT`, `LENS`, `FOCUS`, `ENTRY`, `UI_ANIM`). Data only, no logic. |
-| `lib/carousel/engine.js` | Everything on the canvas: renderer, infinite row, scroll, lens shader (inline GLSL), focus mode, entry animation, render loop. Framework-free — no React imports, ever. |
-| `lib/carousel/gui.js` | lil-gui dev panel (hidden by default). Mutates the config objects live. |
-| `Components/CarouselSection.jsx` | React overlay only: heading, counter, "View" cursor label, Close button, viewport gate (<1025px shows a black screen and never boots WebGL). |
-| `app/page.js` | Just renders `<CarouselSection />`. |
+| `lib/content/home.js` | Homepage words: title, headline, subhead, services list, testimonials, how many projects get big case-study frames. Edit copy here. |
+| `app/page.js` | Fetches published work + site settings, maps projects to `{ id, slug, name, client, poster, ratio, orientation, href }`. |
+| `Components/home/HomePortfolio.jsx` + `home.css` | Panel (intro, hatched divider, testimonial carousel) and stream (case cards, services, shot tiles, about, contact + "Send a brief" sheet), progressive edge blur. |
+| `Components/home/BookButton.jsx` | "Book a call" button: 3-arrow track + canvas particles on hover. |
+| `Components/site/TopBar.jsx` + `kit.css` | Shared top bar (avatar, letter-roll name, menu sheet portalled to body) and design tokens. |
+| `Components/PublicHeader.jsx` / `PublicFooter.jsx` | Every other public page: TopBar + `site/site-language.css` (scoped to `body:has(.sl-nav)`, so admin and the student area are untouched) + scroll reveal. |
+| `lib/video-aspect.js` | Works out a video's real shape (upload metadata, Drive thumbnail, YouTube letterbox, `/shorts/`), admin orientation is the fallback. |
 
-Routing common requests: add/change images → `config.js` `PROJECTS`. Scroll feel / snap / panel size → `config.js` `CONFIG`. Drag + click-vs-drag thresholds → `config.js` `INTERACT`. Lens look → `config.js` `LENS` (uniforms mirror it 1:1). Entry/focus choreography → `ENTRY` / `FOCUS`. Overlay text or breakpoint → `CarouselSection.jsx`. Motion/render behavior → `engine.js`.
-
-## Architecture invariants — do not break these
-
-- **The engine talks to React only via callbacks** (`onActiveChange`, `onFocusChange`, `onEntryDone`, `onModeChange`) and the returned handle (`closeFocus`, `replayEntry`, `refreshLayout`, `setInteraction`, `destroy`). Don't import React into the engine or reach into engine internals from the component.
-- **GSAP animates plain numbers, never meshes.** Timelines tween values in `drop[]`, `pEntry[]`, `growArr[]`, `focusScale`, `focusState.lensFx`; `layout()` reads them each frame and derives final mesh transforms. Keep new animations in this pattern or motion will fight itself.
-- **One easing system.** Scroll motion is a single lerp (`scroll += (target - scroll) * ease`), where `ease` picks between `EASE` / `SNAP_EASE` / `TOUCH_EASE` per frame. Wheel, drag, momentum and the settle-snap all move `target` only — nothing may move `scroll` directly or add a second tween on it. (History: layered easing/snap systems here caused jumpy scrolling and were rebuilt twice.)
-- **The settle-snap triggers on idle time** (`SNAP_IDLE_MS` since the last input), not on remaining distance or velocity. Distance/velocity gating fired at different moments for fast flicks vs slow scrolls and felt inconsistent — don't reintroduce it.
-- **Cursor state has one owner.** All cursor writes go through `updateCursor()` (deduped, runs every frame via `refreshHover`). It reads `hoverPanel` (raw geometry); the trailing label reads `overPanel`, which adds its own gates. Never set `el.style.cursor` directly.
-- **A drag must not open focus.** `onPointerUp` sets `suppressClick` past `CLICK_SLOP` (`TOUCH_CLICK_SLOP` for touch) and `onClick` consumes it. Keep that handshake intact when touching either handler.
-- **The FBO is sized in device pixels** (`W * dpr`), including in `onResize`. Sizing it in CSS pixels makes everything blurry on retina.
-- **Textures need mipmaps + anisotropy** (set in the load callback). Panels render ~80px tall during entry; plain linear filtering looks mushy.
-- **1 world unit = 1 px** (orthographic camera). All layout math assumes this.
-- **Input gating:** wheel/click are ignored while `focusState.active || entryActive || entrySettled`. `focusState.active` stays true until the close timeline *finishes*, even though `onFocusChange(false)` fires at close *start* (so the overlay UI syncs with the returning cards). Preserve that ordering.
-- **Panel indices can be any integer** — `centerForIndex`/`nearestIndex` use an unbounded index (`source = idx mod N`, loop = `floor(idx / N)`) so the row can target the nearest copy of a panel across the infinite wrap. Don't clamp them to `0..N-1`.
+Brand: white, ink `#080808`, hairlines `#e8e8e8`, brand green `#174c38` as the one accent (buttons, avatar, progress, credits). Never pair green with black text. Fonts: Geist (everything), Inter 600 (buttons), Kantumruy Pro (badge/labels).
 
 ## Conventions
 
-- Comment style: short, lowercase, practical (`// match page bg so FBO gaps blend`). Section markers are `// ---- name ----`. No JSDoc blocks, no banner rulers — the owner wants the code to read hand-written.
-- Keep `config.js` values in sync with `gui.js` slider ranges when adding tunables, and mirror any new `LENS` key as a shader uniform.
+- Comment style: short, lowercase, practical. Section markers are `// ---- name ----`. No JSDoc blocks, no banner rulers.
 - JS only (no TypeScript). Path alias `@/*` → repo root.
 
 ## Verify changes
 
 ```bash
-npm run build     # compiles (Turbopack) — catches wiring mistakes
-npx eslint Components lib
-npm run dev       # feel-check scroll/entry/focus by hand; these are not unit-testable
+npm run build
+npx eslint Components lib app
+npm run dev
 ```
-
-## Homepage grid (replaces the hero on `/`)
-
-The home page is now an infinite, curved WebGL grid of projects. The brief lives in `docs/homepage-grid-prompt.md`.
-
-| File | Owns |
-| --- | --- |
-| `lib/grid/config.js` | Grid tunables (lattice, curvature, motion, focus, intro, atlas). Data only. |
-| `lib/grid/engine.js` | three.js renderer, curved projection shaders, wrap, input, inertia, fly-to, hit-testing. No React. |
-| `Components/grid/GridHome.jsx` | Overlay UI: coords, hover title, cursor, ticker, a11y list, mobile menu. Boots the engine. |
-| `Components/grid/GridNav.jsx`, `ProjectSheet.jsx`, `AboutSheet.jsx` | Nav pill, project sheet, about/contact sheet (posts to `/api/enquiries`). Motion (`motion/react`) drives all DOM animation. |
-| `app/page.js` | Fetches Supabase work and maps it to `{ id, name, brandColor, services[], images[6], caseStudyUrl }`. |
-
-Same contract as the carousel: the engine talks to React only through callbacks (`onHover`, `onSelect`, `onFrame`, `onColors`, `onIntroDone`, `onRequestClose`) and its handle (`flyToProject`, `release`, `setDimmed`, `resize`, `destroy`). Keep `bendJS` in step with the GLSL `bend()`, because hit-testing inverts it.

@@ -78,7 +78,7 @@ export default function CheckoutForm({ courseId, email, currency, amountMinor, i
         {applied?.discountMinor>0&&<div className="checkout-discount-row"><dt>Coupon savings</dt><dd>-{formatMoney(applied.discountMinor,currency)}</dd></div>}
         <div className="checkout-final-total"><dt>Total</dt><dd>{money(total)}</dd></div>
       </dl>
-      <p className="checkout-order-help">Questions before you enrol? <Link href="/contact">We can help.</Link></p>
+      <p className="checkout-order-help">Questions before you enrol? <Link href="/#contact">We can help.</Link></p>
     </aside>
     <form className="checkout-action-column" onSubmit={event=>{event.preventDefault(); if(verified&&typed)apply();}}>
       <section className="checkout-step-block">

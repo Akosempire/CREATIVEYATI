@@ -28,6 +28,6 @@ export default async function CoursesPage() {
           {courses.map(course=><CourseCard key={course.id} course={course}/>)}
         </CourseCatalog>
       </section>
-      <section className="catalog-support"><div><p className="eyebrow">A LITTLE GUIDANCE?</p><h2>Let&apos;s find your starting point.</h2><p>Tell us what you want to create. We&apos;ll help you choose where to begin.</p></div><Link className="button button-secondary" href="/contact">Talk to us &rarr;</Link></section>
+      <section className="catalog-support"><div><p className="eyebrow">A LITTLE GUIDANCE?</p><h2>Let&apos;s find your starting point.</h2><p>Tell us what you want to create. We&apos;ll help you choose where to begin.</p></div><Link className="button button-secondary" href="/#contact">Talk to us &rarr;</Link></section>
     </div><PublicFooter site={site} socialLinks={socialLinks}/></main>;
 }

@@ -1,0 +1,91 @@
+/* ---- shared kit: tokens, top bar, menu sheet, book button, hatch ----
+   quiet monochrome, geist, hairlines. brand green is the one accent. */
+:root {
+  --k-ink: #080808;
+  --k-ink-80: #080808cc;
+  --k-ink-60: #08080899;
+  --k-ink-50: #08080880;
+  --k-ink-15: #08080826;
+  --k-grey-900: #212121;
+  --k-grey-800: #363636;
+  --k-button: #171717;
+  --k-muted: #787676;
+  --k-paper: #ffffff;
+  --k-paper-2: #fafafa;
+  --k-stone: #f5f4f2;
+  --k-stone-2: #ededeb;
+  --k-line: #e8e8e8;
+  --k-accent: #174c38; /* brand green, in place of the brief's mint */
+  --k-accent-hover: #1f6249;
+  --k-ease: cubic-bezier(.22, 1, .36, 1);
+  --k-sans: Geist, Inter, ui-sans-serif, system-ui, sans-serif;
+  --k-ui: Inter, ui-sans-serif, system-ui, sans-serif;
+  --k-badge: "Kantumruy Pro", Inter, ui-sans-serif, sans-serif;
+}
+html.tb-locked, html.tb-locked body { overflow: hidden; }
+
+/* ---- top bar ---- */
+.tb {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  height: 60px; padding: 0 20px;
+  background: rgba(255, 255, 255, .6);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--k-line);
+  font-family: var(--k-sans); color: var(--k-ink);
+}
+/* design-tool frame guide */
+.tb::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; border-left: 1px dashed var(--k-line); pointer-events: none; }
+.tb-id { display: inline-flex; align-items: center; gap: 10px; color: var(--k-ink); text-decoration: none; font-size: 15px; letter-spacing: -.01em; }
+.tb-avatar { position: relative; flex: 0 0 auto; display: grid; place-items: center; overflow: hidden; border-radius: 72px; background: var(--k-accent); color: #fff; font: 500 13px var(--k-sans); }
+.tb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tb-roll { display: inline-flex; }
+.tb-roll-ch { position: relative; display: inline-flex; flex-direction: column; height: 1.25em; line-height: 1.25em; overflow: hidden; }
+.tb-roll-ch > span { display: block; transition: transform .45s var(--k-ease); transition-delay: calc(var(--i) * 15ms); }
+.tb-id:is(:hover, :focus-visible) .tb-roll-ch > span { transform: translateY(-100%); }
+.tb-burger { position: relative; width: 40px; height: 40px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+.tb-burger:hover { background: var(--k-stone); }
+.tb-burger span { position: absolute; left: 11px; right: 11px; height: 1.5px; border-radius: 2px; background: var(--k-ink); transition: transform .35s var(--k-ease); }
+.tb-burger span:first-child { transform: translateY(-3.5px); }
+.tb-burger span:last-child { transform: translateY(3.5px); }
+.tb-burger.is-open span:first-child { transform: rotate(45deg); }
+.tb-burger.is-open span:last-child { transform: rotate(-45deg); }
+.tb-burger:focus-visible, .tb-id:focus-visible { outline: 2px solid var(--k-ink); outline-offset: 2px; }
+
+.tb-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(8, 8, 8, .18); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.tb-sheet { position: fixed; z-index: 71; top: 12px; right: 12px; width: min(360px, calc(100vw - 24px)); padding: 10px; border: 1px solid var(--k-line); border-radius: 16px; background: #fff; box-shadow: 0 20px 60px rgba(8, 8, 8, .12); font-family: var(--k-sans); }
+.tb-sheet ul { margin: 0; padding: 0; list-style: none; }
+.tb-sheet li a { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px; border-radius: 10px; color: var(--k-ink); font-size: 22px; letter-spacing: -.04em; text-decoration: none; }
+.tb-sheet li a span { color: var(--k-ink-50); transition: transform .3s var(--k-ease); }
+.tb-sheet li a:is(:hover, :focus-visible) { background: var(--k-stone); outline: none; }
+.tb-sheet li a:is(:hover, :focus-visible) span { transform: translateX(4px); color: var(--k-ink); }
+.tb-sheet-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; padding: 12px 14px 6px; border-top: 1px solid var(--k-line); font-size: 14px; }
+.tb-sheet-foot a { color: var(--k-ink); text-decoration: none; }
+.tb-sheet-foot a:hover { text-decoration: underline; }
+.tb-sheet-cta { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 8px; background: var(--k-accent); color: #fff !important; font: 600 14px var(--k-ui); text-decoration: none !important; }
+.tb-sheet-cta:hover { background: var(--k-accent-hover); }
+
+/* ---- book a call ---- */
+.bk { position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; overflow: hidden; border-radius: 8px; background: var(--k-accent); color: #fff; font: 600 14px var(--k-ui); text-decoration: none; white-space: nowrap; box-shadow: 0 1px 2px rgba(8, 8, 8, .18), 0 6px 16px -6px rgba(23, 76, 56, .5); transition: background-color .3s var(--k-ease); }
+.bk:hover { background: var(--k-accent-hover); }
+.bk:focus-visible { outline: 2px solid var(--k-ink); outline-offset: 3px; }
+.bk canvas { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; opacity: 0; transition: opacity .4s var(--k-ease); pointer-events: none; }
+.bk:is(:hover, :focus-visible) canvas { opacity: 1; }
+.bk-arrows { position: relative; display: inline-block; width: 1em; height: 1.2em; overflow: hidden; }
+.bk-arrows span { position: absolute; left: 0; top: 0; transition: transform .45s var(--k-ease); }
+.bk-arrows span:nth-child(1) { transform: translateX(-120%); }
+.bk-arrows span:nth-child(2) { transform: translateX(0); }
+.bk-arrows span:nth-child(3) { transform: translateX(120%); opacity: 0; }
+.bk:is(:hover, :focus-visible) .bk-arrows span:nth-child(1) { transform: translateX(0); }
+.bk:is(:hover, :focus-visible) .bk-arrows span:nth-child(2) { transform: translateX(120%); }
+
+/* ---- hatch: the signature divider ---- */
+.k-hatch, .hp-hatch {
+  height: 32px;
+  border-block: 1px solid var(--k-line);
+  background-image: repeating-linear-gradient(45deg, var(--k-line) 0 1px, transparent 1px 6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-roll-ch > span, .bk-arrows span, .tb-burger span { transition: none; }
+}

@@ -57,8 +57,11 @@
 .hp-case-inner { position: absolute; inset: 0; display: grid; place-items: center; }
 .hp-mock { --r: 1.778; display: block; overflow: hidden; border-radius: 6px; background: var(--k-stone-2); box-shadow: 0 1px 2px rgba(8, 8, 8, .08), 0 30px 60px -24px rgba(8, 8, 8, .38); transition: transform .4s var(--k-ease); }
 .hp-case .hp-mock { width: min(80cqw, 76cqh * var(--ar, 1.778)); }
-.hp-mock img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.hp-case:hover .hp-mock, .hp-shot-tile:hover .hp-mock { transform: scale(1.02); }
+/* frame matches the image, so contain never letterboxes; it just guarantees no crop */
+.hp-mock img { display: block; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .5s var(--k-ease); }
+.hp-mock.is-loaded img { opacity: 1; }
+.hp-mock-wrap { display: grid; place-items: center; transition: transform .4s var(--k-ease); }
+.hp-case:hover .hp-mock-wrap, .hp-shot-tile:hover .hp-mock-wrap { transform: scale(1.02); }
 .hp-case-meta { position: absolute; left: 20px; bottom: 22px; display: flex; flex-direction: column; gap: 2px; max-width: 48%; font-size: 14px; letter-spacing: -.01em; }
 .hp-case-meta b { font-weight: 400; }
 .hp-case-meta small { font-size: 13px; opacity: .6; }
@@ -148,7 +151,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hp-progress i.is-live::after { animation: none; width: 100%; }
-  .hp-mock, .hp-pill, .hp-pill-arrow, .hp-wa, .hp-link { transition: none; }
+  .hp-mock-wrap, .hp-pill, .hp-pill-arrow, .hp-wa, .hp-link { transition: none; }
 }
 
 /* the install-app prompt floats so it never pushes the sticky panel */

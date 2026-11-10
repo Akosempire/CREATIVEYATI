@@ -106,11 +106,24 @@ function useReveal() {
   return [ref, seen];
 }
 
+// the frame takes the cover image's own shape, read from the image itself once it
+// loads, so a 16:9 cover is never squeezed into a 9:16 box (or the reverse).
+// the video's ratio is only the first guess while the image is on its way.
 function Mockup({ project, priority }) {
-  // the frame takes the film's own shape: 9:16 stays tall, 16:9 stays wide
-  return <span className="hp-mock" style={{ aspectRatio: project.ratio, "--ar": project.ratio }}>
-    <img src={project.poster} alt={project.alt} style={{ objectPosition: project.focal }} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" />
-  </span>;
+  const [ratio, setRatio] = useState(project.ratio);
+  const [loaded, setLoaded] = useState(false);
+  const measure = (img) => {
+    if (!img?.naturalWidth || !img.naturalHeight) return;
+    setRatio(img.naturalWidth / img.naturalHeight);
+    setLoaded(true);
+  };
+  return <span className="hp-mock-wrap"><motion.span layout transition={{ layout: { duration: 0.45, ease } }} className={`hp-mock${loaded ? " is-loaded" : ""}`} style={{ aspectRatio: ratio, "--ar": ratio }}>
+    <img
+      ref={(img) => { if (img?.complete && !loaded) measure(img); }}
+      onLoad={(e) => measure(e.currentTarget)}
+      src={project.poster} alt={project.alt} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"
+    />
+  </motion.span></span>;
 }
 
 function CaseCard({ project, tone, priority }) {

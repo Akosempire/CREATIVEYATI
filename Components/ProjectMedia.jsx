@@ -29,6 +29,13 @@ export default function ProjectMedia({
   const covers = useMemo(() => projectCovers(project), [project]);
   const [playing, setPlaying] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  // the poster keeps the cover image's own shape (read on load), never a forced 16:9
+  const [coverRatio, setCoverRatio] = useState(null);
+  const coverShape = !coverRatio ? "landscape" : coverRatio < 0.95 ? "portrait" : coverRatio > 1.05 ? "landscape" : "square";
+  const onCover = (img) => {
+    if (img?.naturalWidth && img.naturalHeight) setCoverRatio(img.naturalWidth / img.naturalHeight);
+    setLoaded(true);
+  };
   const [overrideSource, setOverrideSource] = useState("");
   const hasMobileCover = Boolean(covers.mobileUrl || Object.keys(covers.mobileVariants).length);
   const mainSrcSet = variantSrcSet(preferMobile && hasMobileCover ? covers.mobileVariants : covers.mainVariants);
@@ -64,7 +71,8 @@ export default function ProjectMedia({
     data-video-orientation={orientation}
     data-ratio={playing ? (orientation === "portrait" ? "9:16" : orientation === "square" ? "1:1" : "16:9") : "16:9"}
     data-playing={playing ? "true" : "false"}
-    style={{ "--media-aspect": playing ? videoAspectRatio : 16 / 9, "--cover-fit": "cover", "--focal-x": `${covers.focalX}%`, "--focal-y": `${covers.focalY}%` }}
+    data-cover-orientation={coverShape}
+    style={{ "--media-aspect": playing ? videoAspectRatio : coverRatio || 16 / 9, "--cover-fit": "cover", "--focal-x": `${covers.focalX}%`, "--focal-y": `${covers.focalY}%` }}
   >
     <AnimatePresence mode="popLayout" initial={false}>
     {playing ? <motion.div key="player" className="project-media-layer" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.15 } }} exit={{ opacity: 0 }}>
@@ -77,7 +85,7 @@ export default function ProjectMedia({
           initial={reduce ? false : { opacity: 0, scale: 1.02 }}
           animate={loaded || reduce ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.02 }}
           transition={{ duration: 0.6, ease }}
-          ref={(image) => { if (image?.complete && image.naturalWidth && !loaded) requestAnimationFrame(() => setLoaded(true)); }}
+          ref={(image) => { if (image?.complete && image.naturalWidth && !loaded) requestAnimationFrame(() => onCover(image)); }}
           src={source}
           srcSet={!overrideSource ? mainSrcSet || undefined : undefined}
           sizes={contextSizes[context]}
@@ -85,7 +93,7 @@ export default function ProjectMedia({
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
           decoding="async"
-          onLoad={() => setLoaded(true)}
+          onLoad={(e) => onCover(e.currentTarget)}
           onError={useNextFallback}
           draggable="false"
         />

@@ -2101,3 +2101,7 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .project-media > .project-media-layer > .player { width: 100%; height: 100%; max-height: none; aspect-ratio: inherit; }
 /* motion drives the play button's transform (centring + hover lift) */
 .project-media-play, .project-media-play:hover, .project-media-play:focus-visible { transform: none; transition: filter var(--duration-fast) var(--ease-smooth-out); }
+/* covers keep their own shape before play too: tall covers don't run the full width */
+.project-media--project-page[data-playing="false"][data-cover-orientation="portrait"] { width: min(100%, 460px); }
+.project-media--project-page[data-playing="false"][data-cover-orientation="square"] { width: min(100%, 620px); }
+.project-media--admin-preview[data-playing="false"][data-cover-orientation="portrait"] { width: min(100%, 300px); margin-inline: auto; }

@@ -6,7 +6,7 @@ import { AnimatePresence, MotionConfig, motion, useInView, useReducedMotion, use
 import TopBar, { Avatar } from "@/Components/site/TopBar";
 import BookButton from "./BookButton";
 import ContactForm from "@/Components/ContactForm";
-import { CASE_STUDY_COUNT, HOME, SERVICES, TESTIMONIALS, TESTIMONIAL_MS } from "@/lib/content/home";
+import { ABOUT_PAGE, CASE_STUDY_COUNT, HOME, SERVICES, SERVICES_PAGE, TESTIMONIALS, TESTIMONIAL_MS } from "@/lib/content/home";
 import "./home.css";
 
 const ease = [0.22, 1, 0.36, 1];
@@ -16,7 +16,11 @@ const rise = {
 };
 
 
-export default function HomePortfolio({ site, projects, socialLinks }) {
+// one layout, three pages: the panel never changes; the stream opens with the
+// page's own content (services / about) and always carries every project after it.
+const TITLES = { work: HOME.title, services: SERVICES_PAGE.title, about: ABOUT_PAGE.title };
+
+export default function HomePortfolio({ site, projects, socialLinks, page = "work" }) {
   const cases = projects.slice(0, CASE_STUDY_COUNT);
   const shots = projects.slice(CASE_STUDY_COUNT);
   return <MotionConfig reducedMotion="user">
@@ -28,12 +32,15 @@ export default function HomePortfolio({ site, projects, socialLinks }) {
         <Testimonials />
       </aside>
 
-      <main className="hp-stream" id="work" aria-label="Selected work">
-        <h1 className="hp-sr">{HOME.title}</h1>
-        {cases.map((p, i) => <CaseCard key={p.id} project={p} priority={i === 0} />)}
-        <ServicesFrame />
-        {shots.map((p) => <ShotTile key={p.id} project={p} site={site} />)}
-        <AboutFrame site={site} />
+      <main className="hp-stream" aria-label={page === "work" ? "Selected work" : page === "services" ? "Services and selected work" : "About and selected work"}>
+        <h1 className="hp-sr">{TITLES[page]}</h1>
+        {page === "services" && <ServicesFrame site={site} />}
+        {page === "about" && <AboutFrame site={site} />}
+        {page !== "work" && <div className="hp-hatch hp-stream-hatch" aria-hidden="true" />}
+        <div id="work">
+          {cases.map((p, i) => <CaseCard key={p.id} project={p} priority={i === 0 && page === "work"} />)}
+          {shots.map((p) => <ShotTile key={p.id} project={p} site={site} />)}
+        </div>
         <ContactFrame site={site} socialLinks={socialLinks} />
         {!projects.length && <p className="hp-empty">New work is on its way.</p>}
       </main>
@@ -204,25 +211,41 @@ function ShotTile({ project, site }) {
   </figure>;
 }
 
-function ServicesFrame() {
-  return <section className="hp-frame hp-services" id="services" aria-label="Services">
+// ---- page leads ----
+function ServicesFrame({ site }) {
+  return <section className="hp-frame hp-services hp-lead" id="services" aria-labelledby="hp-services-title">
+    <p className="hp-lead-label">Services</p>
+    <h2 id="hp-services-title" className="hp-lead-title">{SERVICES_PAGE.heading[0]}<span>{SERVICES_PAGE.heading[1]}</span></h2>
     <ol>
-      {SERVICES.map((s, i) => <li key={s.title}>
+      {SERVICES.map((s, i) => <motion.li key={s.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.6, delay: i * 0.05, ease }}>
         <span className="hp-num">{String(i + 1).padStart(2, "0")}</span>
-        <div><h2>{s.title}</h2><p>{s.body}</p></div>
-      </li>)}
+        <div><h3>{s.title}</h3><p>{s.body}</p></div>
+      </motion.li>)}
     </ol>
+    <div className="hp-lead-cta"><BookButton href={site.bookingUrl} /><span>Or scroll for the work.</span></div>
   </section>;
 }
 
 function AboutFrame({ site }) {
-  const paragraphs = [site.aboutCopy, site.aboutCurrentWork].filter(Boolean);
-  return <section className="hp-frame hp-about" id="about" aria-label="About">
-    <div className="hp-about-id">
-      <Avatar src={site.profileImage} name={site.creatorName} size={72} />
-      <p><b>{site.creatorName || "Idayat Ibrahim"}</b><span>{site.professionalTitle || "AI Video Creator"}</span></p>
+  const name = site.creatorName || "Idayat Ibrahim";
+  const story = [site.aboutCopy, site.aboutCurrentWork].filter(Boolean);
+  const notes = [["Approach", site.aboutApproach], ["Experience", site.aboutExperience], ["Philosophy", site.aboutPhilosophy]].filter(([, t]) => t);
+  return <section className="hp-frame hp-about hp-lead" id="about" aria-labelledby="hp-about-title">
+    <p className="hp-lead-label">About</p>
+    <h2 id="hp-about-title" className="hp-lead-title">{site.aboutHeading || "Made for attention, built with intent."}</h2>
+    <div className="hp-about-body">
+      <motion.figure className="hp-portrait" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease }}>
+        <img src={site.profileImage} alt={`${name}, ${site.professionalTitle || "AI video creator"}`} style={{ objectPosition: site.profileFocal }} />
+        <figcaption><b>{name}</b><span>{site.professionalTitle || "AI Video Creator"}</span>{site.availability && <span>{site.availability}</span>}</figcaption>
+      </motion.figure>
+      <div className="hp-about-copy">
+        {(story.length ? story : [HOME.subhead]).map((t) => <p key={t.slice(0, 30)}>{t}</p>)}
+        {notes.length > 0 && <dl className="hp-notes">
+          {notes.map(([label, text]) => <div key={label}><dt>{label}</dt><dd>{text}</dd></div>)}
+        </dl>}
+        <div className="hp-lead-cta"><BookButton href={site.bookingUrl} /><span>Or scroll for the work.</span></div>
+      </div>
     </div>
-    <div className="hp-about-copy">{(paragraphs.length ? paragraphs : [HOME.subhead]).map((t) => <p key={t.slice(0, 30)}>{t}</p>)}</div>
   </section>;
 }
 

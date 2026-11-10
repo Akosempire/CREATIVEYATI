@@ -1,10 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // services, about, contact and the work index were folded into the homepage
+  // contact and the work index live on the homepage
   async redirects() {
     return [
-      { source: "/services", destination: "/#services", permanent: true },
-      { source: "/about", destination: "/#about", permanent: true },
       { source: "/contact", destination: "/#contact", permanent: true },
       { source: "/work", destination: "/#work", permanent: true },
       { source: "/hero-preview", destination: "/", permanent: true },

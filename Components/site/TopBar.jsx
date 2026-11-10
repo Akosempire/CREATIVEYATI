@@ -11,8 +11,8 @@ import "./kit.css";
 
 export const MENU = [
   ["/#work", "Work"],
-  ["/#services", "Services"],
-  ["/#about", "About"],
+  ["/services", "Services"],
+  ["/about", "About"],
   ["/#contact", "Contact"],
   ["/academy", "Academy"],
   ["/courses", "Courses"],

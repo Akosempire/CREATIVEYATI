@@ -1,10 +1,11 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { animate, inView, stagger } from "motion";
 import SplitType from "split-type";
 
+// line-by-line text reveal for [data-reveal] blocks: each line rises out of a
+// mask and unblurs as it scrolls into view. motion's inView + animate (was gsap).
 export default function PublicTextReveal({ children, as: Tag = "div", className = "" }) {
   const root = useRef(null);
 
@@ -14,14 +15,11 @@ export default function PublicTextReveal({ children, as: Tag = "div", className 
 
     let cancelled = false;
     const splits = [];
-    const animations = [];
+    const stops = [];
 
     const setup = () => {
       if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
-      const targets = Array.from(element.querySelectorAll("[data-reveal]"));
-
-      targets.forEach((target) => {
+      element.querySelectorAll("[data-reveal]").forEach((target) => {
         const split = new SplitType(target, { types: "lines", tagName: "span", lineClass: "text-reveal-line" });
         splits.push(split);
         split.lines.forEach((line) => {
@@ -29,19 +27,14 @@ export default function PublicTextReveal({ children, as: Tag = "div", className 
           mask.className = "text-reveal-mask";
           line.parentNode?.insertBefore(mask, line);
           mask.appendChild(line);
+          line.style.opacity = "0";
+          line.style.transform = "translateY(112%)";
+          line.style.filter = "blur(8px)";
         });
-        const animation = gsap.fromTo(split.lines, { yPercent: 112, autoAlpha: 0, filter: "blur(8px)" }, {
-          yPercent: 0,
-          autoAlpha: 1,
-          filter: "blur(0px)",
-          duration: 0.82,
-          stagger: 0.075,
-          ease: "power3.out",
-          scrollTrigger: { trigger: target, start: "top 80%", once: true },
-        });
-        animations.push(animation);
+        stops.push(inView(target, () => {
+          animate(split.lines, { opacity: 1, transform: "translateY(0%)", filter: "blur(0px)" }, { duration: 0.82, delay: stagger(0.075), ease: [0.22, 1, 0.36, 1] });
+        }, { margin: "0px 0px -20% 0px" }));
       });
-      ScrollTrigger.refresh();
     };
 
     if (document.fonts?.ready) document.fonts.ready.then(setup);
@@ -49,7 +42,7 @@ export default function PublicTextReveal({ children, as: Tag = "div", className 
 
     return () => {
       cancelled = true;
-      animations.forEach((animation) => { animation.scrollTrigger?.kill(); animation.kill(); });
+      stops.forEach((stop) => stop?.());
       splits.forEach((split) => split.revert());
     };
   }, []);

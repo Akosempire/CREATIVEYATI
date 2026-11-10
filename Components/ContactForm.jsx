@@ -1,38 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
 const initialState = { loading: false, message: "", status: "idle", errors: {} };
 
+// label swap on submit: old text lifts out, new text rises in (motion)
 function ButtonLabel({ loading }) {
-  const ref = useRef(null);
-  const [text, setText] = useState("Send enquiry");
-
-  useEffect(() => {
-    const next = loading ? "Sending…" : "Send enquiry";
-    const element = ref.current;
-    if (!element || text === next) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const reducedTimer = window.setTimeout(() => setText(next), 0);
-      return () => window.clearTimeout(reducedTimer);
-    }
-    element.classList.remove("is-exit", "is-enter-start");
-    element.classList.add("is-exit");
-    const duration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--text-swap-dur")) || 150;
-    const timer = window.setTimeout(() => {
-      setText(next);
-      element.classList.remove("is-exit");
-      element.classList.add("is-enter-start");
-      void element.offsetHeight;
-      element.classList.remove("is-enter-start");
-    }, duration);
-    return () => {
-      window.clearTimeout(timer);
-      element.classList.remove("is-exit", "is-enter-start");
-    };
-  }, [loading, text]);
-
-  return <span className="t-text-swap" ref={ref}>{text}</span>;
+  const text = loading ? "Sending…" : "Send enquiry";
+  return <span className="t-text-swap" style={{ display: "inline-grid", overflow: "hidden" }}>
+    <AnimatePresence mode="popLayout" initial={false}>
+      <motion.span key={text} style={{ gridArea: "1 / 1" }} initial={{ y: "100%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} exit={{ y: "-100%", opacity: 0 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}>{text}</motion.span>
+    </AnimatePresence>
+  </span>;
 }
 
 function clientErrors(form) {
@@ -85,7 +65,7 @@ export default function ContactForm() {
     }
   }
 
-  return <form className="contact-form" onSubmit={submit} noValidate aria-busy={state.loading}>
+  return <MotionConfig reducedMotion="user"><form className="contact-form" onSubmit={submit} noValidate aria-busy={state.loading}>
     <input name="website" tabIndex="-1" autoComplete="off" className="honeypot" aria-hidden="true" />
     <label className="contact-field">Name <span>(required)</span><input required name="name" autoComplete="name" onInput={clearFieldError} aria-invalid={Boolean(state.errors.name)} aria-describedby={state.errors.name ? "contact-name-error" : undefined} />{state.errors.name && <small id="contact-name-error" className="contact-field-error">{state.errors.name}</small>}</label>
     <label className="contact-field">Email <span>(required)</span><input required name="email" type="email" autoComplete="email" onInput={clearFieldError} aria-invalid={Boolean(state.errors.email)} aria-describedby={state.errors.email ? "contact-email-error" : undefined} />{state.errors.email && <small id="contact-email-error" className="contact-field-error">{state.errors.email}</small>}</label>
@@ -96,5 +76,5 @@ export default function ContactForm() {
     {state.errors.consent && <small id="contact-consent-error" className="contact-field-error consent-error">{state.errors.consent}</small>}
     <button className="button contact-submit" disabled={state.loading} type="submit"><ButtonLabel loading={state.loading} /></button>
     {state.message && <p className={`contact-form-message is-${state.status}`} role={state.status === "error" ? "alert" : "status"} aria-live="polite">{state.message}</p>}
-  </form>;
+  </form></MotionConfig>;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import "./toast.css";
 
 export function notify(message, kind = "success", id = crypto.randomUUID()) {
@@ -26,11 +27,19 @@ function Toast({ item, remove }) {
     const timer = setTimeout(() => remove(item.id), item.kind === "error" ? 8000 : 5000);
     return () => clearTimeout(timer);
   }, [busy, paused, item, remove]);
-  return <div className={`app-toast is-${item.kind}${item.closing ? " is-closing" : ""}`} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false); }}>
+  const reduce = useReducedMotion();
+  // motion owns enter, exit and the re-stack when a neighbour leaves
+  return <motion.div
+    layout={!reduce}
+    initial={reduce ? false : { opacity: 0, y: -16, scale: 0.97, filter: "blur(2px)" }}
+    animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+    exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, y: -12, scale: 0.97, transition: { duration: 0.22, ease: "easeIn" } }}
+    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
+    className={`app-toast is-${item.kind}`} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false); }}>
     <span className={`app-toast-icon${busy ? " is-spinning" : ""}`} aria-hidden="true">{busy ? "" : item.kind === "error" ? "!" : item.kind === "success" ? "\u2713" : "i"}</span>
     <div role={item.kind === "error" ? "alert" : "status"} aria-atomic="true"><strong>{({ success: "Success", error: "Something went wrong", loading: "In progress", downloading: "Downloading", info: "Notice" })[item.kind] || "Notice"}</strong><p>{item.message}</p></div>
     <button type="button" aria-label="Dismiss notification" onClick={() => remove(item.id)}>{"\u00d7"}</button>
-  </div>;
+  </motion.div>;
 }
 const remove = (id) => dismissToast(id);
 
@@ -43,17 +52,11 @@ export default function ToastHost() {
   const [items, setItems] = useState([]);
   useEffect(() => {
     const timers = new Set();
+    // dismissing just drops the item; AnimatePresence plays its exit
     const receive = ({ detail }) => {
       setItems((current) => detail.dismiss
-        ? current.map((item) => item.id === detail.id ? { ...item, closing: true } : item)
+        ? current.filter((item) => item.id !== detail.id)
         : [...current.filter((item) => item.id !== detail.id && !(item.kind === detail.kind && item.message === detail.message && !["loading", "downloading"].includes(item.kind))), detail].slice(-4));
-      if (detail.dismiss) {
-        const timer = setTimeout(() => {
-          setItems((current) => current.filter((item) => item.id !== detail.id || !item.closing));
-          timers.delete(timer);
-        }, 250);
-        timers.add(timer);
-      }
     };
     window.addEventListener("app:toast", receive);
     // Relay existing durable inline feedback without announcing unrelated status text.
@@ -127,5 +130,5 @@ export default function ToastHost() {
     document.addEventListener("click", download);
     return () => { timers.forEach(clearTimeout); observer.disconnect(); window.removeEventListener("app:toast", receive); document.removeEventListener("click", download); document.removeEventListener("invalid", invalid, true); };
   }, []);
-  return <aside className="app-toast-stack" aria-label="Notifications">{items.map((item) => <Toast key={item.id} item={item} remove={remove} />)}</aside>;
+  return <aside className="app-toast-stack" aria-label="Notifications"><AnimatePresence initial={false} mode="popLayout">{items.map((item) => <Toast key={item.id} item={item} remove={remove} />)}</AnimatePresence></aside>;
 }

@@ -8,6 +8,7 @@ import { getSeoSettings } from "@/lib/data/settings";
 import PwaInstall from "@/Components/PwaInstall";
 import ToastHost from "@/Components/ToastHost";
 import CreatorSchema from "@/Components/CreatorSchema";
+import { ENTER_GATE_CSS, ENTER_GATE_SCRIPT } from "@/lib/motion/enter";
 
 export async function generateMetadata() {
   const seo = await getSeoSettings();
@@ -25,6 +26,6 @@ export async function generateMetadata() {
     twitter: { card: "summary_large_image", title: seo.siteTitle, description: seo.siteDescription, images },
   };
 }
-export default function RootLayout({ children }) { return <html lang="en" data-theme="light" style={{ colorScheme: "light" }}><body><CreatorSchema />{children}<ToastHost /><PwaInstall /></body></html>; }
+export default function RootLayout({ children }) { return <html lang="en" data-theme="light" style={{ colorScheme: "light" }} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: ENTER_GATE_SCRIPT }} /><style dangerouslySetInnerHTML={{ __html: ENTER_GATE_CSS }} /></head><body><CreatorSchema />{children}<ToastHost /><PwaInstall /></body></html>; }
 
 export const viewport = { themeColor: "#174c38" };

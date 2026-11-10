@@ -2094,3 +2094,10 @@ body:has(.admin-shell.is-nav-open) { overflow: hidden; }
 .course-workspace .cw-organize>summary { cursor:pointer; padding:10px 0; color:#496455; font-size:13px; }
 .course-workspace .cw-organize .cw-module-toolbar { margin-top:8px; }
 .course-workspace .curriculum-section>label { display:grid; gap:8px; margin-bottom:16px; font-weight:600; }
+
+/* motion layers inside project media fill the frame like the old direct children */
+.project-media > .project-media-layer { position: absolute; inset: 0; }
+.project-media > .project-media-layer > picture, .project-media > .project-media-layer > .player { position: absolute; inset: 0; }
+.project-media > .project-media-layer > .player { width: 100%; height: 100%; max-height: none; aspect-ratio: inherit; }
+/* motion drives the play button's transform (centring + hover lift) */
+.project-media-play, .project-media-play:hover, .project-media-play:focus-visible { transform: none; transition: filter var(--duration-fast) var(--ease-smooth-out); }

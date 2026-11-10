@@ -4,6 +4,7 @@ import { getSiteContent } from "@/lib/data/site";
 import { getPublicSocialLinks } from "@/lib/data/social";
 import { demoVideos } from "@/lib/demo-data";
 import { HOME } from "@/lib/content/home";
+import { getYouTubeId } from "@/lib/youtube";
 
 export const metadata = {
   title: { absolute: HOME.title },
@@ -21,6 +22,14 @@ function ratioOf(video) {
   return video.orientation === "portrait" ? 9 / 16 : 16 / 9;
 }
 
+// youtube films get a muted looping preview in their frame; drive can't autoplay
+function previewOf(video) {
+  const id = video.youtubeVideoId
+    || (video.videoProvider === "youtube" ? video.videoAssetId : "")
+    || getYouTubeId(video.videoUrl || "") || getYouTubeId(video.youtubeUrl || "") || getYouTubeId(video.videoEmbedUrl || "");
+  return id ? { kind: "youtube", id } : null;
+}
+
 function toProject(video) {
   const ratio = ratioOf(video);
   return {
@@ -34,6 +43,7 @@ function toProject(video) {
     ratio,
     orientation: ratio < 0.95 ? "portrait" : ratio > 1.05 ? "landscape" : "square",
     href: video.slug ? `/work/${video.slug}` : "/",
+    preview: previewOf(video),
   };
 }
 

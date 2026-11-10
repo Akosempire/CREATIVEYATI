@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, useInView, useReducedMotion, useScroll, useTransform } from "motion/react";
 import TopBar, { Avatar } from "@/Components/site/TopBar";
 import BookButton from "./BookButton";
 import ContactForm from "@/Components/ContactForm";
@@ -95,6 +95,7 @@ function Testimonials() {
 // loads, so a 16:9 cover is never squeezed into a 9:16 box (or the reverse).
 // the video's ratio is only the first guess while the image is on its way.
 function Mockup({ project, priority }) {
+  const frame = useRef(null);
   const [ratio, setRatio] = useState(project.ratio);
   const [loaded, setLoaded] = useState(false);
   const measure = (img) => {
@@ -102,13 +103,53 @@ function Mockup({ project, priority }) {
     setRatio(img.naturalWidth / img.naturalHeight);
     setLoaded(true);
   };
-  return <span className="hp-mock-wrap"><motion.span layout transition={{ layout: { duration: 0.45, ease } }} className={`hp-mock${loaded ? " is-loaded" : ""}`} style={{ aspectRatio: ratio, "--ar": ratio }}>
+  return <span className="hp-mock-wrap"><motion.span ref={frame} layout transition={{ layout: { duration: 0.45, ease } }} className={`hp-mock${loaded ? " is-loaded" : ""}`} style={{ aspectRatio: ratio, "--ar": ratio }}>
     <img
       ref={(img) => { if (img?.complete && !loaded) measure(img); }}
       onLoad={(e) => measure(e.currentTarget)}
       src={project.poster} alt={project.alt} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"
     />
+    {project.preview && loaded && <Preview preview={project.preview} frameRef={frame} coverRatio={ratio} videoRatio={project.ratio} />}
   </motion.span></span>;
+}
+
+// ---- live preview ----
+// a muted, looping, controls-free clip of the real film over the cover. it only
+// exists while its frame is on screen (so a handful play at most), fades in once
+// the player has had time to start (hiding youtube's opening title), and is
+// skipped under reduced motion, data saver, or when the film's shape doesn't
+// match the cover's (it would have to crop).
+function canPreview() {
+  if (typeof window === "undefined") return false;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  return !navigator.connection?.saveData;
+}
+
+function Preview({ preview, frameRef, coverRatio, videoRatio }) {
+  const inView = useInView(frameRef, { amount: 0.45 });
+  const allowed = useState(canPreview)[0];
+  const matches = Math.abs(Math.log(videoRatio / coverRatio)) < 0.15;
+  // unmounting when off screen frees the player and resets its fade
+  return allowed && matches && inView ? <LivePlayer id={preview.id} coverRatio={coverRatio} videoRatio={videoRatio} /> : null;
+}
+
+function LivePlayer({ id, coverRatio, videoRatio }) {
+  const [ready, setReady] = useState(false);
+  // size the player to the film's own ratio so youtube adds no bars, then cover the frame
+  const wider = videoRatio > coverRatio;
+  const size = wider ? { height: "100%", width: `${(videoRatio / coverRatio) * 100}%` } : { width: "100%", height: `${(coverRatio / videoRatio) * 100}%` };
+  const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3&fs=0`;
+  return <motion.span className="hp-preview" aria-hidden="true" initial={{ opacity: 0 }} animate={{ opacity: ready ? 1 : 0 }} transition={{ duration: 0.8, ease }}>
+    <iframe
+      src={src}
+      title=""
+      tabIndex={-1}
+      allow="autoplay; encrypted-media; picture-in-picture"
+      loading="lazy"
+      style={size}
+      onLoad={() => window.setTimeout(() => setReady(true), 2200)}
+    />
+  </motion.span>;
 }
 
 // ---- scroll motion + glass ----

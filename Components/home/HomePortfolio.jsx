@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import TopBar, { Avatar } from "@/Components/site/TopBar";
 import BookButton from "./BookButton";
 import ContactForm from "@/Components/ContactForm";
@@ -15,8 +15,6 @@ const rise = {
   show: (i) => ({ opacity: 1, y: 0, filter: "blur(0px)", transition: { delay: 0.1 + i * 0.08, duration: 0.6, ease } }),
 };
 
-// light / dark neutral frames, alternating
-const FRAMES = ["#F5F4F2", "#363636", "#FAFAFA", "#212121"];
 
 export default function HomePortfolio({ site, projects, socialLinks }) {
   const cases = projects.slice(0, CASE_STUDY_COUNT);
@@ -32,7 +30,7 @@ export default function HomePortfolio({ site, projects, socialLinks }) {
 
       <main className="hp-stream" id="work" aria-label="Selected work">
         <h1 className="hp-sr">{HOME.title}</h1>
-        {cases.map((p, i) => <CaseCard key={p.id} project={p} tone={FRAMES[i % FRAMES.length]} priority={i === 0} />)}
+        {cases.map((p, i) => <CaseCard key={p.id} project={p} priority={i === 0} />)}
         <ServicesFrame />
         {shots.map((p) => <ShotTile key={p.id} project={p} site={site} />)}
         <AboutFrame site={site} />
@@ -93,19 +91,6 @@ function Testimonials() {
 }
 
 // ---- stream frames ----
-function useReveal() {
-  const ref = useRef(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !("IntersectionObserver" in window)) { setSeen(true); return undefined; }
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } }, { rootMargin: "0px 0px -10% 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return [ref, seen];
-}
-
 // the frame takes the cover image's own shape, read from the image itself once it
 // loads, so a 16:9 cover is never squeezed into a 9:16 box (or the reverse).
 // the video's ratio is only the first guess while the image is on its way.
@@ -126,12 +111,38 @@ function Mockup({ project, priority }) {
   </motion.span></span>;
 }
 
-function CaseCard({ project, tone, priority }) {
-  const [ref, seen] = useReveal();
-  const dark = tone === "#363636" || tone === "#212121";
-  return <Link ref={ref} href={project.href} className={`hp-case${dark ? " is-dark" : ""}`} style={{ background: tone }} aria-label={`${project.name}${project.client ? `, ${project.client}` : ""}: view case study`}>
-    <motion.span className="hp-case-inner" initial={false} animate={seen ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }} transition={{ duration: 0.8, ease }}>
-      <Mockup project={project} priority={priority} />
+// ---- scroll motion + glass ----
+// as a card travels through the viewport its mockup rises, grows to full size at
+// the centre and eases off again; the blurred backdrop drifts the other way.
+function useDrift(ref, strength = 1) {
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [70 * strength, -70 * strength]);
+  const scale = useTransform(scrollYProgress, [0, 0.45, 1], reduce ? [1, 1, 1] : [0.92, 1, 0.96]);
+  const opacity = useTransform(scrollYProgress, [0, 0.16], reduce ? [1, 1] : [0, 1]);
+  const bgY = useTransform(scrollYProgress, [0, 1], reduce ? ["0%", "0%"] : ["-9%", "9%"]);
+  return { y, scale, opacity, bgY, reduce };
+}
+
+// the project's own cover, heavily blurred: every frame glows in its own colours
+function Glass({ src, y }) {
+  return <motion.span className="hp-glass" aria-hidden="true" style={{ y }}>
+    <img src={src} alt="" loading="lazy" decoding="async" />
+  </motion.span>;
+}
+
+// a slow idle float so the work keeps breathing when the page is still
+function Float({ children, reduce, delay = 0 }) {
+  return <motion.span className="hp-float" animate={reduce ? undefined : { y: [0, -8, 0] }} transition={{ duration: 6, ease: "easeInOut", repeat: Infinity, delay }}>{children}</motion.span>;
+}
+
+function CaseCard({ project, priority }) {
+  const ref = useRef(null);
+  const { y, scale, opacity, bgY, reduce } = useDrift(ref);
+  return <Link ref={ref} href={project.href} className="hp-case" aria-label={`${project.name}${project.client ? `, ${project.client}` : ""}: view case study`}>
+    <Glass src={project.poster} y={bgY} />
+    <motion.span className="hp-case-inner" style={{ y, scale, opacity }}>
+      <Float reduce={reduce}><Mockup project={project} priority={priority} /></Float>
     </motion.span>
     <span className="hp-case-meta"><b>{project.name}</b>{project.client && <small>{project.client}</small>}</span>
     <span className="hp-pill">View case study <span className="hp-pill-arrow" aria-hidden="true">→</span></span>
@@ -139,11 +150,13 @@ function CaseCard({ project, tone, priority }) {
 }
 
 function ShotTile({ project, site }) {
-  const [ref, seen] = useReveal();
+  const ref = useRef(null);
+  const { y, scale, opacity, bgY, reduce } = useDrift(ref, 0.6);
   return <figure ref={ref} className="hp-shot">
     <Link href={project.href} className="hp-shot-tile" aria-label={`${project.name}: view case study`}>
-      <motion.span initial={false} animate={seen ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }} transition={{ duration: 0.8, ease }} className="hp-shot-inner">
-        <Mockup project={project} />
+      <Glass src={project.poster} y={bgY} />
+      <motion.span style={{ y, scale, opacity }} className="hp-shot-inner">
+        <Float reduce={reduce} delay={1.5}><Mockup project={project} /></Float>
       </motion.span>
     </Link>
     <figcaption><Avatar src={site.profileImage} name={site.creatorName} size={16} /><b>{project.client || project.name}</b><span>Directed by {site.creatorName || "Idayat Ibrahim"}</span></figcaption>
